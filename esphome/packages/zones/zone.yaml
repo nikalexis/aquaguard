@@ -45,7 +45,6 @@ number:
     max_value: 100000000
     step: 1
     mode: box
-    accuracy_decimals: 0
     lambda: |-
       return id(zone_${zone}_consumption_l_value);
     set_action:
@@ -64,7 +63,6 @@ number:
     max_value: 100000000
     step: 1
     mode: box
-    accuracy_decimals: 0
     lambda: |-
       return id(zone_${zone}_limit_l_value);
     set_action:
@@ -190,13 +188,13 @@ sensor:
     internal_filter: 10ms
     internal_filter_mode: PULSE
     timeout: 5min
-    update_interval: 10s
     pin:
       number: ${di_pin}
       mode: INPUT_PULLUP
       inverted: true
       allow_other_uses: true
     filters:
+      - heartbeat: 10s
       - exponential_moving_average:
           alpha: 0.0645
           send_every: 1

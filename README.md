@@ -140,6 +140,13 @@ Create `esphome/secrets.yaml` from `esphome/secrets.example.yaml`, then validate
 esphome config esphome/aquaguard-main.yaml
 ```
 
+Or with Docker:
+
+```sh
+docker run --rm -v "$PWD":/config -w /config ghcr.io/esphome/esphome:2026.4.5 config esphome/aquaguard-main.yaml
+docker run --rm -v "$PWD":/config -w /config ghcr.io/esphome/esphome:2026.4.5 compile esphome/aquaguard-main.yaml
+```
+
 ## Next Review Focus
 
 Before flashing hardware, confirm:
