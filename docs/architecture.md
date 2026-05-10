@@ -118,11 +118,11 @@ Default per zone:
 
 - `Zone Name = Zone N`
 - `Consumption = 0`
-- `Limit Active = ON`
+- `Limit Active = OFF`
 - `Limit = 0`
 - `Admin Stop = OFF`
 
-Persistence should cover writable zone state and last-pulse epoch. Consumption changes may happen often, so the YAML should avoid unnecessary flash writes where ESPHome provides batching or restore controls.
+Persistence should cover writable zone state and last-pulse epoch. Consumption changes may happen often, so the YAML should publish every accepted pulse but avoid manual flash writes on every liter where ESPHome provides batching or restore controls.
 
 ## File Responsibilities
 
@@ -138,13 +138,14 @@ Shared packages:
 - `time.yaml`: SNTP + RTC config
 - `web.yaml`: web UI
 - `persistence.yaml`: boot ordering and restore behavior
-- `globals.yaml`: persisted scalar state
-- `scripts.yaml`: shared zone scripts
+- `scripts.yaml`: shared non-zone helpers, if needed
 - `diagnostics.yaml`: node-level diagnostics
 
 Per zone:
 
-- `zones/zone_N.yaml`: input, relay, entities, and zone automations
+- `zones/zone.yaml`: reusable zone template included 8 times with package variables
+
+The top-level file should include `zones/zone.yaml` once per zone with variables for zone number, default zone name, digital input pin, and relay expander pin. Zone-specific persisted values belong in the reusable template using IDs derived from the zone number.
 
 ## Integration
 

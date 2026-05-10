@@ -16,19 +16,33 @@ esphome/
 │   ├── time.yaml
 │   ├── web.yaml
 │   ├── persistence.yaml
-│   ├── globals.yaml
 │   ├── scripts.yaml
 │   ├── diagnostics.yaml
 │   └── zones/
-│       ├── zone_1.yaml
-│       ├── zone_2.yaml
-│       ├── zone_3.yaml
-│       ├── zone_4.yaml
-│       ├── zone_5.yaml
-│       ├── zone_6.yaml
-│       ├── zone_7.yaml
-│       └── zone_8.yaml
+│       └── zone.yaml
 └── secrets.example.yaml
+```
+
+`aquaguard-main.yaml` should include `packages/zones/zone.yaml` 8 times with ESPHome package variables.
+
+Required zone include variables:
+
+- `zone`
+- `default_zone_name`
+- `di_pin`
+- `relay_pin`
+
+Example:
+
+```yaml
+packages:
+  zone_1: !include
+    file: packages/zones/zone.yaml
+    vars:
+      zone: "1"
+      default_zone_name: "Zone 1"
+      di_pin: GPIO4
+      relay_pin: "0"
 ```
 
 ## Per-Zone Entity Names
@@ -85,11 +99,8 @@ Use the official ESPHome device profile as the hardware source of truth:
 - `persistence.yaml`
   restore order and startup consistency
 
-- `globals.yaml`
-  persisted consumption, limit toggle, limit value, admin stop, last-pulse epoch
-
 - `scripts.yaml`
-  shared evaluation/apply scripts
+  shared non-zone helpers, if needed
 
 - `diagnostics.yaml`
   uptime, restart reason, network diagnostics, optional time diagnostics
@@ -109,9 +120,9 @@ Healthy means:
 
 The pulse flash should be triggered only for accepted pulses after debounce/filtering.
 
-## Zone File Responsibilities
+## Zone Template Responsibilities
 
-Each `zone_N.yaml` should define:
+`zones/zone.yaml` should define one reusable zone. Each include instance should define:
 
 - writable `Zone Name`
 - pulse input
@@ -128,13 +139,16 @@ Each `zone_N.yaml` should define:
 - read-only `Last Pulse Age`
 - read-only `Last Pulse Timestamp`
 
+Zone-specific persisted values should live in this template with IDs derived from `${zone}`.
+
 ## Runtime Rules
 
 Pulse counting:
 
 - each valid pulse increments `Consumption` by `1`
 - a pulse is valid only after debounce/filtering suppresses reed-switch contact bounce
-- persist after each increment
+- publish the updated consumption after each increment
+- rely on ESPHome restore/preference behavior for persistence instead of forcing a manual flash write on every pulse
 - store last-pulse time after each increment
 - re-evaluate zone after each increment
 
@@ -199,7 +213,7 @@ Default values:
 
 - `Zone Name = Zone N`
 - `Consumption = 0`
-- `Limit Active = ON`
+- `Limit Active = OFF`
 - `Limit = 0`
 - `Admin Stop = OFF`
 
@@ -219,7 +233,7 @@ Boot restore order:
 ## Acceptance Criteria
 
 - one top-level ESPHome file plus shared packages
-- 8 modular zone files
+- one reusable zone template included 8 times
 - Ethernet only
 - native API enabled
 - local web UI enabled

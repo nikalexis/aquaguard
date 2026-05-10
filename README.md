@@ -102,7 +102,7 @@ Read-only:
 
 - `Consumption` should be implemented as a single writable number entity in liters.
 - Frequent persistence must be handled carefully to avoid unnecessary flash wear.
-- Default values: `Zone Name = Zone N`, `Consumption = 0`, `Limit Active = ON`, `Limit = 0`, `Admin Stop = OFF`.
+- Default values: `Zone Name = Zone N`, `Consumption = 0`, `Limit Active = OFF`, `Limit = 0`, `Admin Stop = OFF`.
 
 ## Planned Structure
 
@@ -121,26 +121,20 @@ Read-only:
     │   ├── time.yaml
     │   ├── web.yaml
     │   ├── persistence.yaml
-    │   ├── globals.yaml
     │   ├── scripts.yaml
     │   ├── diagnostics.yaml
     │   └── zones/
-    │       ├── zone_1.yaml
-    │       ├── zone_2.yaml
-    │       ├── zone_3.yaml
-    │       ├── zone_4.yaml
-    │       ├── zone_5.yaml
-    │       ├── zone_6.yaml
-    │       ├── zone_7.yaml
-    │       └── zone_8.yaml
+    │       └── zone.yaml
     └── secrets.example.yaml
 ```
+
+`aquaguard-main.yaml` includes `packages/zones/zone.yaml` 8 times with per-zone variables for zone number, default name, digital input pin, and relay expander pin.
 
 ## Review Focus
 
 Before YAML generation, confirm:
 
-- the modular file layout
+- the DRY package layout
 - the `NC` relay logic
 - whether writable entities should be editable from both web UI and Home Assistant
 - whether any additional diagnostics should be exposed
