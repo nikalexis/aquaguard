@@ -142,7 +142,6 @@ binary_sensor:
         - component.update: zone_${zone}_last_pulse_age
         - component.update: zone_${zone}_last_pulse_timestamp
         - script.execute: zone_${zone}_apply_state
-        - script.execute: flash_pulse_led
 
   - platform: template
     id: zone_${zone}_limit_exceeded

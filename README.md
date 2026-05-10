@@ -67,7 +67,6 @@ Use the onboard RGB LED as a simple device-level indicator:
 
 - blue while booting
 - green when healthy
-- white flash on every accepted pulse
 
 `Healthy` means:
 

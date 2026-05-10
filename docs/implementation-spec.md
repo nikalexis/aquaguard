@@ -111,14 +111,11 @@ Use the onboard RGB LED on the board as a simple device-level status light:
 
 - booting: blue
 - healthy: green
-- pulse received: brief white flash
 
 Healthy means:
 
 - Ethernet/DHCP is working
 - SNTP time has synchronized
-
-The pulse flash should be triggered only for accepted pulses after debounce/filtering.
 
 ## Zone Template Responsibilities
 

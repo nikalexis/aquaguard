@@ -74,7 +74,6 @@ Use the onboard RGB LED only for device-level status:
 
 - blue while booting
 - green when the controller is healthy
-- brief white flash on each accepted pulse
 
 Healthy means:
 

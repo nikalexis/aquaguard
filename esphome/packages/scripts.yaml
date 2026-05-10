@@ -31,15 +31,3 @@ script:
                 green: 0%
                 blue: 100%
                 brightness: 40%
-
-  - id: flash_pulse_led
-    mode: restart
-    then:
-      - light.turn_on:
-          id: status_led
-          red: 100%
-          green: 100%
-          blue: 100%
-          brightness: 100%
-      - delay: 120ms
-      - script.execute: update_status_led
