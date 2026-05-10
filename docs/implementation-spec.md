@@ -97,7 +97,7 @@ Use the official ESPHome device profile as the hardware source of truth:
   local web UI
 
 - `persistence.yaml`
-  restore order and startup consistency
+  restore order, startup consistency, and `preferences.flash_write_interval: 5min`
 
 - `scripts.yaml`
   shared non-zone helpers, if needed
@@ -148,7 +148,7 @@ Pulse counting:
 - each valid pulse increments `Consumption` by `1`
 - a pulse is valid only after debounce/filtering suppresses reed-switch contact bounce
 - publish the updated consumption after each increment
-- rely on ESPHome restore/preference behavior for persistence instead of forcing a manual flash write on every pulse
+- rely on ESPHome persistence with `preferences.flash_write_interval: 5min` instead of forcing a manual flash write on every pulse
 - store last-pulse time after each increment
 - re-evaluate zone after each increment
 
@@ -220,8 +220,9 @@ Default values:
 Flash-write caution:
 
 - consumption may change frequently
-- avoid forcing flash writes on every pulse if ESPHome restore/preference batching can handle it
-- keep `Consumption` recoverable across reboot without turning every liter into an immediate manual flash write
+- use `preferences.flash_write_interval: 5min`
+- do not force immediate flash writes on every pulse
+- accept that after sudden power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter
 
 Boot restore order:
 

@@ -101,7 +101,9 @@ Read-only:
 ## Implementation Notes
 
 - `Consumption` should be implemented as a single writable number entity in liters.
-- Frequent persistence must be handled carefully to avoid unnecessary flash wear.
+- Use `preferences.flash_write_interval: 5min` to batch flash writes and reduce wear.
+- Consumption should still be updated in RAM and published on every accepted pulse.
+- After an unexpected power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter.
 - Default values: `Zone Name = Zone N`, `Consumption = 0`, `Limit Active = OFF`, `Limit = 0`, `Admin Stop = OFF`.
 
 ## Planned Structure

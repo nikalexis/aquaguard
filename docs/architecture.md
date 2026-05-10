@@ -122,7 +122,7 @@ Default per zone:
 - `Limit = 0`
 - `Admin Stop = OFF`
 
-Persistence should cover writable zone state and last-pulse epoch. Consumption changes may happen often, so the YAML should publish every accepted pulse but avoid manual flash writes on every liter where ESPHome provides batching or restore controls.
+Persistence should cover writable zone state and last-pulse epoch. The YAML should publish every accepted pulse immediately in RAM and expose it through the API/UI, but use `preferences.flash_write_interval: 5min` so flash commits are batched. After unexpected power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter.
 
 ## File Responsibilities
 
@@ -137,7 +137,7 @@ Shared packages:
 - `ethernet.yaml`: Ethernet config
 - `time.yaml`: SNTP + RTC config
 - `web.yaml`: web UI
-- `persistence.yaml`: boot ordering and restore behavior
+- `persistence.yaml`: boot ordering, restore behavior, and `preferences.flash_write_interval: 5min`
 - `scripts.yaml`: shared non-zone helpers, if needed
 - `diagnostics.yaml`: node-level diagnostics
 
