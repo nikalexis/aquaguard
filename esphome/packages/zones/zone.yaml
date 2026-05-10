@@ -87,6 +87,7 @@ switch:
     id: zone_${zone}_limit_active
     name: "Zone ${zone} Limit Active"
     icon: "mdi:water-check"
+    restore_mode: DISABLED
     lambda: |-
       return id(zone_${zone}_limit_active_value);
     turn_on_action:
@@ -104,6 +105,7 @@ switch:
     id: zone_${zone}_admin_stop
     name: "Zone ${zone} Admin Stop"
     icon: "mdi:water-off"
+    restore_mode: DISABLED
     lambda: |-
       return id(zone_${zone}_admin_stop_value);
     turn_on_action:
