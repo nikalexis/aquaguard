@@ -1,0 +1,45 @@
+binary_sensor:
+  - platform: status
+    name: "Node Status"
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Ethernet Connected"
+    id: ethernet_connected_status
+    entity_category: diagnostic
+    lambda: |-
+      return id(ethernet_connected);
+
+  - platform: template
+    name: "SNTP Synced"
+    id: sntp_synced_status
+    entity_category: diagnostic
+    lambda: |-
+      return id(sntp_synced);
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: node_uptime
+    entity_category: diagnostic
+    update_interval: 60s
+
+text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+    entity_category: diagnostic
+
+button:
+  - platform: restart
+    name: "Restart"
+    id: restart_button
+    entity_category: config
+
+  - platform: safe_mode
+    name: "Safe Mode"
+    entity_category: config
+
+  - platform: factory_reset
+    name: "Factory Reset"
+    entity_category: config

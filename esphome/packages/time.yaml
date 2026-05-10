@@ -1,0 +1,28 @@
+esphome:
+  on_boot:
+    priority: 600
+    then:
+      - pcf85063.read_time:
+          id: rtc_time
+
+time:
+  - platform: pcf85063
+    id: rtc_time
+    timezone: ${timezone}
+    update_interval: never
+
+  - platform: sntp
+    id: sntp_time
+    timezone: ${timezone}
+    servers:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+      - 2.pool.ntp.org
+    on_time_sync:
+      then:
+        - lambda: |-
+            id(sntp_synced) = true;
+            id(sntp_synced_status).publish_state(true);
+        - pcf85063.write_time:
+            id: rtc_time
+        - script.execute: update_status_led

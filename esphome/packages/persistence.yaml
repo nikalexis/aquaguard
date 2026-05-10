@@ -1,0 +1,13 @@
+preferences:
+  flash_write_interval: 5min
+
+globals:
+  - id: ethernet_connected
+    type: bool
+    restore_value: false
+    initial_value: "false"
+
+  - id: sntp_synced
+    type: bool
+    restore_value: false
+    initial_value: "false"

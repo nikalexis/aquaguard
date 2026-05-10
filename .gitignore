@@ -1,5 +1,6 @@
 # ESPHome build output
 .esphome/
+esphome/secrets.yaml
 
 # Python cache
 __pycache__/

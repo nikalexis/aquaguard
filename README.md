@@ -2,7 +2,7 @@
 
 ESPHome design for a Waveshare `ESP32-S3-ETH-8DI-8RO` used as an 8-zone water monitoring and shutoff controller.
 
-This repo is still in the spec phase. No ESPHome YAML has been generated yet.
+The first ESPHome YAML implementation lives under `esphome/`.
 
 ## Scope
 
@@ -132,11 +132,19 @@ Read-only:
 
 `aquaguard-main.yaml` includes `packages/zones/zone.yaml` 8 times with per-zone variables for zone number, default name, digital input pin, and relay expander pin.
 
-## Review Focus
+## ESPHome Usage
 
-Before YAML generation, confirm:
+Create `esphome/secrets.yaml` from `esphome/secrets.example.yaml`, then validate from the repo root with:
 
-- the DRY package layout
+```sh
+esphome config esphome/aquaguard-main.yaml
+```
+
+## Next Review Focus
+
+Before flashing hardware, confirm:
+
+- ESPHome validation/compile output
 - the `NC` relay logic
-- whether writable entities should be editable from both web UI and Home Assistant
+- the physical DI/relay-to-zone wiring
 - whether any additional diagnostics should be exposed
