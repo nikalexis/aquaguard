@@ -24,7 +24,13 @@ text_sensor:
       name: "Ethernet IP Address"
       id: ethernet_ip_address
       entity_category: diagnostic
+      web_server:
+        sorting_group_id: diagnostics_group
+        sorting_weight: 60
     mac_address:
       name: "Ethernet MAC Address"
       id: ethernet_mac_address
       entity_category: diagnostic
+      web_server:
+        sorting_group_id: diagnostics_group
+        sorting_weight: 70

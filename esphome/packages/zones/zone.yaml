@@ -34,6 +34,9 @@ text:
     min_length: 1
     max_length: 48
     mode: text
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 0
 
 number:
   - platform: template
@@ -45,6 +48,9 @@ number:
     max_value: 100000000
     step: 1
     mode: box
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 10
     lambda: |-
       return id(zone_${zone}_consumption_l_value);
     set_action:
@@ -63,6 +69,9 @@ number:
     max_value: 100000000
     step: 1
     mode: box
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 20
     lambda: |-
       return id(zone_${zone}_limit_l_value);
     set_action:
@@ -88,6 +97,9 @@ switch:
     name: "Zone ${zone} Limit Active"
     icon: "mdi:water-check"
     restore_mode: DISABLED
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 30
     lambda: |-
       return id(zone_${zone}_limit_active_value);
     turn_on_action:
@@ -106,6 +118,9 @@ switch:
     name: "Zone ${zone} Admin Stop"
     icon: "mdi:water-off"
     restore_mode: DISABLED
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 40
     lambda: |-
       return id(zone_${zone}_admin_stop_value);
     turn_on_action:
@@ -149,6 +164,9 @@ binary_sensor:
     id: zone_${zone}_limit_exceeded
     name: "Zone ${zone} Limit Exceeded"
     icon: "mdi:water-alert"
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 80
     lambda: |-
       return id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
 
@@ -156,6 +174,9 @@ binary_sensor:
     id: zone_${zone}_limit_stop
     name: "Zone ${zone} Limit Stop"
     icon: "mdi:water-remove"
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 70
     lambda: |-
       return id(zone_${zone}_limit_active_value) &&
              id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
@@ -164,6 +185,9 @@ binary_sensor:
     id: zone_${zone}_effective_stop
     name: "Zone ${zone} Effective Stop"
     icon: "mdi:valve-closed"
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 60
     lambda: |-
       const bool limit_stop = id(zone_${zone}_limit_active_value) &&
                               id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
@@ -173,6 +197,9 @@ binary_sensor:
     id: zone_${zone}_water_allowed
     name: "Zone ${zone} Water Allowed"
     icon: "mdi:valve-open"
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 50
     lambda: |-
       const bool limit_stop = id(zone_${zone}_limit_active_value) &&
                               id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
@@ -189,6 +216,9 @@ sensor:
     internal_filter: 10ms
     internal_filter_mode: PULSE
     timeout: 5min
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 90
     pin:
       number: ${di_pin}
       mode: INPUT_PULLUP
@@ -207,6 +237,9 @@ sensor:
     icon: "mdi:timer-outline"
     accuracy_decimals: 1
     update_interval: 30s
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 100
     lambda: |-
       const uint32_t last = id(zone_${zone}_last_pulse_epoch);
       auto now = id(sntp_time).now();
@@ -221,6 +254,9 @@ text_sensor:
     name: "Zone ${zone} Last Pulse Timestamp"
     icon: "mdi:clock-outline"
     update_interval: 60s
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 110
     lambda: |-
       const uint32_t last = id(zone_${zone}_last_pulse_epoch);
       if (last == 0) {

@@ -2,11 +2,17 @@ binary_sensor:
   - platform: status
     name: "Node Status"
     entity_category: diagnostic
+    web_server:
+      sorting_group_id: diagnostics_group
+      sorting_weight: 10
 
   - platform: template
     name: "Ethernet Connected"
     id: ethernet_connected_status
     entity_category: diagnostic
+    web_server:
+      sorting_group_id: diagnostics_group
+      sorting_weight: 20
     lambda: |-
       return id(ethernet_connected);
 
@@ -14,6 +20,9 @@ binary_sensor:
     name: "SNTP Synced"
     id: sntp_synced_status
     entity_category: diagnostic
+    web_server:
+      sorting_group_id: diagnostics_group
+      sorting_weight: 30
     lambda: |-
       return id(sntp_synced);
 
@@ -23,23 +32,38 @@ sensor:
     id: node_uptime
     entity_category: diagnostic
     update_interval: 60s
+    web_server:
+      sorting_group_id: diagnostics_group
+      sorting_weight: 40
 
 text_sensor:
   - platform: version
     name: "ESPHome Version"
     hide_timestamp: true
     entity_category: diagnostic
+    web_server:
+      sorting_group_id: diagnostics_group
+      sorting_weight: 50
 
 button:
   - platform: restart
     name: "Restart"
     id: restart_button
     entity_category: config
+    web_server:
+      sorting_group_id: maintenance_group
+      sorting_weight: 10
 
   - platform: safe_mode
     name: "Safe Mode"
     entity_category: config
+    web_server:
+      sorting_group_id: maintenance_group
+      sorting_weight: 20
 
   - platform: factory_reset
     name: "Factory Reset"
     entity_category: config
+    web_server:
+      sorting_group_id: maintenance_group
+      sorting_weight: 30
