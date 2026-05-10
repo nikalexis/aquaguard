@@ -14,6 +14,19 @@ This repo is still in the spec phase. No ESPHome YAML has been generated yet.
 - Home Assistant via ESPHome native API
 - persisted consumption and control state across reboot
 
+## Hardware Model
+
+Based on the official ESPHome device profile:
+
+- MCU: `ESP32-S3-WROOM-1U-N16R8`
+- Ethernet: `W5500`
+- relay expander: `PCA9554/TCA9554` at I2C address `0x20`
+- digital inputs: `GPIO4` to `GPIO11`
+- relay outputs: expander pins `0` to `7`
+- RTC: `PCF85063`
+- I2C: `SDA GPIO42`, `SCL GPIO41`
+- RGB LED: `WS2812` on `GPIO38`
+
 ## Control Model
 
 Per zone:
@@ -83,7 +96,13 @@ Read-only:
 
 `Flow Rate EMA 5m` is public. The raw flow-rate source remains internal.
 
-`Zone Name` is for operator-facing labels only and should not be used as a stable internal ID.
+`Zone Name` is for operator-facing labels only. ESPHome entity IDs remain stable and zone-based.
+
+## Implementation Notes
+
+- `Consumption` should be implemented as a single writable number entity in liters.
+- Frequent persistence must be handled carefully to avoid unnecessary flash wear.
+- Default values: `Zone Name = Zone N`, `Consumption = 0`, `Limit Active = ON`, `Limit = 0`, `Admin Stop = OFF`.
 
 ## Planned Structure
 

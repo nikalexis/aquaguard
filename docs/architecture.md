@@ -12,6 +12,21 @@ The controller is an Ethernet-only ESPHome node for the Waveshare `ESP32-S3-ETH-
 - 1 persisted `Admin Stop` toggle
 - 1 relay output controlling one valve
 
+## Hardware
+
+The implementation should follow the official ESPHome device profile:
+
+- MCU: `ESP32-S3-WROOM-1U-N16R8`, 16 MB flash, 8 MB PSRAM
+- ESPHome board target: `esp32s3box`
+- Ethernet: `W5500`
+- Ethernet pins: `CLK GPIO15`, `MOSI GPIO13`, `MISO GPIO14`, `CS GPIO16`, `INT GPIO12`
+- I2C pins: `SDA GPIO42`, `SCL GPIO41`
+- RTC: `PCF85063`
+- relay expander: `PCA9554/TCA9554`, address `0x20`
+- relay outputs: expander pins `0` to `7`
+- digital inputs: `DI1 GPIO4`, `DI2 GPIO5`, `DI3 GPIO6`, `DI4 GPIO7`, `DI5 GPIO8`, `DI6 GPIO9`, `DI7 GPIO10`, `DI8 GPIO11`
+- RGB LED: `WS2812`, `GPIO38`, 1 LED
+
 ## Zone Logic
 
 Pulse handling:
@@ -95,7 +110,19 @@ Read-only per zone:
 - `Last Pulse Age`
 - `Last Pulse Timestamp`
 
-`Zone Name` should be used as the operator-facing label where practical, while internal entity IDs remain zone-based.
+`Zone Name` should be used as the operator-facing label where practical. It should not be used as a stable internal entity ID because ESPHome entity IDs are static.
+
+## Defaults and Persistence
+
+Default per zone:
+
+- `Zone Name = Zone N`
+- `Consumption = 0`
+- `Limit Active = ON`
+- `Limit = 0`
+- `Admin Stop = OFF`
+
+Persistence should cover writable zone state and last-pulse epoch. Consumption changes may happen often, so the YAML should avoid unnecessary flash writes where ESPHome provides batching or restore controls.
 
 ## File Responsibilities
 

@@ -48,6 +48,23 @@ esphome/
 
 Friendly names should use `Zone N ...`.
 
+## Hardware Facts
+
+Use the official ESPHome device profile as the hardware source of truth:
+
+- `esp32.board: esp32s3box`
+- flash: `16MB`
+- PSRAM: octal, `80MHz`
+- Ethernet: `W5500`
+- Ethernet pins: `clk GPIO15`, `mosi GPIO13`, `miso GPIO14`, `cs GPIO16`, `interrupt GPIO12`
+- I2C: `sda GPIO42`, `scl GPIO41`, `100kHz`
+- RTC: `pcf85063`
+- relay expander: `pca9554`, address `0x20`
+- relays: expander pins `0..7`, not direct ESP32 GPIO
+- digital inputs: `GPIO4..GPIO11`, `INPUT_PULLUP`, inverted
+- input debounce: `delayed_on_off: 10ms`
+- RGB LED: `esp32_rmt_led_strip`, `WS2812`, `GPIO38`, `num_leds: 1`
+
 ## Shared Package Responsibilities
 
 - `device_base.yaml`
@@ -124,6 +141,7 @@ Pulse counting:
 Consumption resync:
 
 - `Consumption` is writable by admin
+- implement `Consumption` as one writable number entity in liters
 - manual edits are for meter resynchronization
 - re-evaluate zone after each edit
 
@@ -132,6 +150,7 @@ Zone naming:
 - `Zone Name` is writable by admin
 - it is persisted
 - it is for operator-facing labeling only
+- do not use `Zone Name` as a stable internal entity ID
 
 Limit logic:
 
@@ -175,6 +194,20 @@ Persist at minimum:
 - `Limit`
 - `Admin Stop`
 - last-pulse epoch
+
+Default values:
+
+- `Zone Name = Zone N`
+- `Consumption = 0`
+- `Limit Active = ON`
+- `Limit = 0`
+- `Admin Stop = OFF`
+
+Flash-write caution:
+
+- consumption may change frequently
+- avoid forcing flash writes on every pulse if ESPHome restore/preference batching can handle it
+- keep `Consumption` recoverable across reboot without turning every liter into an immediate manual flash write
 
 Boot restore order:
 
