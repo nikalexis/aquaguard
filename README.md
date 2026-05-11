@@ -126,12 +126,11 @@ Read-only:
     │   ├── persistence.yaml
     │   ├── scripts.yaml
     │   ├── diagnostics.yaml
-    │   └── zones/
-    │       └── zone.yaml
+    │   └── zone.yaml
     └── secrets.example.yaml
 ```
 
-`aquaguard-main.yaml` includes `packages/zones/zone.yaml` 8 times with per-zone variables for zone number, default name, digital input pin, and relay expander pin.
+`aquaguard-main.yaml` includes `packages/zone.yaml` 8 times with per-zone variables for zone number, default name, digital input pin, and relay expander pin.
 
 ## ESPHome Usage
 

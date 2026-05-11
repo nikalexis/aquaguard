@@ -2,7 +2,7 @@ substitutions:
   device_name: aquaguard
   device_friendly_name: AquaGuard
   device_comment: "8-zone water consumption monitor and configurable relay shutoff controller"
-  firmware_revision: "0.1.1"
+  firmware_revision: "0.1.2"
   timezone: Europe/Athens
 
 packages:
@@ -16,7 +16,7 @@ packages:
   diagnostics: !include packages/diagnostics.yaml
 
   zone_1: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "1"
       default_zone_name: "Zone 1"
@@ -24,7 +24,7 @@ packages:
       relay_pin: "0"
 
   zone_2: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "2"
       default_zone_name: "Zone 2"
@@ -32,7 +32,7 @@ packages:
       relay_pin: "1"
 
   zone_3: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "3"
       default_zone_name: "Zone 3"
@@ -40,7 +40,7 @@ packages:
       relay_pin: "2"
 
   zone_4: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "4"
       default_zone_name: "Zone 4"
@@ -48,7 +48,7 @@ packages:
       relay_pin: "3"
 
   zone_5: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "5"
       default_zone_name: "Zone 5"
@@ -56,7 +56,7 @@ packages:
       relay_pin: "4"
 
   zone_6: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "6"
       default_zone_name: "Zone 6"
@@ -64,7 +64,7 @@ packages:
       relay_pin: "5"
 
   zone_7: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "7"
       default_zone_name: "Zone 7"
@@ -72,7 +72,7 @@ packages:
       relay_pin: "6"
 
   zone_8: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "8"
       default_zone_name: "Zone 8"

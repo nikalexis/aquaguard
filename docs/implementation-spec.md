@@ -18,12 +18,11 @@ esphome/
 │   ├── persistence.yaml
 │   ├── scripts.yaml
 │   ├── diagnostics.yaml
-│   └── zones/
-│       └── zone.yaml
+│   └── zone.yaml
 └── secrets.example.yaml
 ```
 
-`aquaguard-main.yaml` should include `packages/zones/zone.yaml` 8 times with ESPHome package variables.
+`aquaguard-main.yaml` should include `packages/zone.yaml` 8 times with ESPHome package variables.
 
 Required zone include variables:
 
@@ -37,7 +36,7 @@ Example:
 ```yaml
 packages:
   zone_1: !include
-    file: packages/zones/zone.yaml
+    file: packages/zone.yaml
     vars:
       zone: "1"
       default_zone_name: "Zone 1"
@@ -120,7 +119,7 @@ Healthy means:
 
 ## Zone Template Responsibilities
 
-`zones/zone.yaml` should define one reusable zone. Each include instance should define:
+`packages/zone.yaml` should define one reusable zone. Each include instance should define:
 
 - writable `Zone Name`
 - writable `Valve Wiring`

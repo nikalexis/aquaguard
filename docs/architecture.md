@@ -145,9 +145,9 @@ Shared packages:
 
 Per zone:
 
-- `zones/zone.yaml`: reusable zone template included 8 times with package variables
+- `zone.yaml`: reusable zone template included 8 times with package variables
 
-The top-level file should include `zones/zone.yaml` once per zone with variables for zone number, default zone name, digital input pin, and relay expander pin. Zone-specific persisted values belong in the reusable template using IDs derived from the zone number.
+The top-level file should include `packages/zone.yaml` once per zone with variables for zone number, default zone name, digital input pin, and relay expander pin. Zone-specific persisted values belong in the reusable template using IDs derived from the zone number.
 
 ## Integration
 
