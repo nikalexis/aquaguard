@@ -5,6 +5,7 @@
 The controller is an Ethernet-only ESPHome node for the Waveshare `ESP32-S3-ETH-8DI-8RO`. It manages 8 identical zones. Each zone has:
 
 - 1 persisted writable friendly name
+- 1 persisted `Valve Wiring` selection, default `NC`
 - 1 reed-switch meter input
 - 1 persisted consumption counter in liters
 - 1 persisted `Limit Active` toggle
@@ -45,9 +46,9 @@ Stop logic:
 
 Relay behavior:
 
-- valve is wired to the relay `NC` contact
-- relay `OFF` / GPIO `0` = water allowed
-- relay `ON` / GPIO `1` = water stopped
+- `Valve Wiring = NC`: relay `OFF` / GPIO `0` allows water, relay `ON` / GPIO `1` stops water
+- `Valve Wiring = NO`: relay `ON` / GPIO `1` allows water, relay `OFF` / GPIO `0` stops water
+- `NC` is the default/fail-open mode; `NO` is controller-forced and stops water if the controller loses power
 
 The relay state is computed from persisted zone state after reboot. It is not treated as an independent source of truth.
 
@@ -94,6 +95,7 @@ Because `1 pulse = 1 L`, pulse rate in pulses/min maps directly to `L/min`.
 Writable per zone:
 
 - `Zone Name`
+- `Valve Wiring`
 - `Consumption`
 - `Limit Active`
 - `Limit`
@@ -116,6 +118,7 @@ Read-only per zone:
 Default per zone:
 
 - `Zone Name = Zone N`
+- `Valve Wiring = NC`
 - `Consumption = 0`
 - `Limit Active = OFF`
 - `Limit = 0`

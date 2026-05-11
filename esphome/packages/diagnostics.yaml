@@ -37,6 +37,15 @@ sensor:
       sorting_weight: 40
 
 text_sensor:
+  - platform: template
+    name: "Firmware Revision"
+    entity_category: diagnostic
+    web_server:
+      sorting_group_id: diagnostics_group
+      sorting_weight: 45
+    lambda: |-
+      return {"${firmware_revision}"};
+
   - platform: version
     name: "ESPHome Version"
     hide_timestamp: true

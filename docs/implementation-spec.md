@@ -48,6 +48,7 @@ packages:
 ## Per-Zone Entity Names
 
 - `zone_N_name`
+- `zone_N_valve_wiring`
 - `zone_N_consumption_l`
 - `zone_N_limit_active`
 - `zone_N_limit_l`
@@ -122,6 +123,7 @@ Healthy means:
 `zones/zone.yaml` should define one reusable zone. Each include instance should define:
 
 - writable `Zone Name`
+- writable `Valve Wiring`
 - pulse input
 - relay output
 - writable `Consumption`
@@ -163,6 +165,13 @@ Zone naming:
 - it is for operator-facing labeling only
 - do not use `Zone Name` as a stable internal entity ID
 
+Valve wiring:
+
+- `Valve Wiring` is a persisted admin selection with options `NC` and `NO`
+- default is `NC`
+- `NC` means relay `OFF` allows water and relay `ON` stops water
+- `NO` means relay `ON` allows water and relay `OFF` stops water
+
 Limit logic:
 
 - `limit_exceeded = consumption >= limit`
@@ -177,8 +186,8 @@ Final relay logic:
 
 - `effective_stop = limit_stop OR admin_stop`
 - `water_allowed = NOT effective_stop`
-- relay `ON` when `effective_stop = true`
-- relay `OFF` when `effective_stop = false`
+- in `NC` mode, relay `ON` when `effective_stop = true`
+- in `NO` mode, relay `ON` when `effective_stop = false`
 
 ## Flow Rate
 
@@ -200,6 +209,7 @@ Final relay logic:
 Persist at minimum:
 
 - `Zone Name`
+- `Valve Wiring`
 - `Consumption`
 - `Limit Active`
 - `Limit`
@@ -209,6 +219,7 @@ Persist at minimum:
 Default values:
 
 - `Zone Name = Zone N`
+- `Valve Wiring = NC`
 - `Consumption = 0`
 - `Limit Active = OFF`
 - `Limit = 0`
@@ -235,7 +246,7 @@ Boot restore order:
 - Ethernet only
 - native API enabled
 - local web UI enabled
-- valves on relay `NC`
+- per-zone relay contact mode defaults to `NC` and can be changed to `NO`
 - persisted consumption and control state
 - public per-zone flow, pulse-history, and stop-state diagnostics
 - raw flow sensor kept internal

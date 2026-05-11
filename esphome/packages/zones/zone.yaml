@@ -19,6 +19,11 @@ globals:
     restore_value: true
     initial_value: "false"
 
+  - id: zone_${zone}_valve_wiring_no_value
+    type: bool
+    restore_value: true
+    initial_value: "false"
+
   - id: zone_${zone}_last_pulse_epoch
     type: uint32_t
     restore_value: true
@@ -37,6 +42,26 @@ text:
     web_server:
       sorting_group_id: zone_${zone}_group
       sorting_weight: 0
+
+select:
+  - platform: template
+    id: zone_${zone}_valve_wiring
+    name: "Zone ${zone} Valve Wiring"
+    icon: "mdi:electric-switch"
+    options:
+      - "NC"
+      - "NO"
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 5
+    lambda: |-
+      return id(zone_${zone}_valve_wiring_no_value) ? std::string("NO") : std::string("NC");
+    set_action:
+      - lambda: |-
+          const bool valve_wiring_no = x == "NO";
+          id(zone_${zone}_valve_wiring_no_value) = valve_wiring_no;
+          id(zone_${zone}_valve_wiring).publish_state(valve_wiring_no ? "NO" : "NC");
+      - script.execute: zone_${zone}_apply_state
 
 number:
   - platform: template
@@ -279,6 +304,7 @@ script:
       - lambda: |-
           id(zone_${zone}_consumption_l).publish_state(id(zone_${zone}_consumption_l_value));
           id(zone_${zone}_limit_l).publish_state(id(zone_${zone}_limit_l_value));
+          id(zone_${zone}_valve_wiring).publish_state(id(zone_${zone}_valve_wiring_no_value) ? "NO" : "NC");
           id(zone_${zone}_limit_active).publish_state(id(zone_${zone}_limit_active_value));
           id(zone_${zone}_admin_stop).publish_state(id(zone_${zone}_admin_stop_value));
       - component.update: zone_${zone}_last_pulse_age
@@ -292,13 +318,14 @@ script:
           const bool limit_exceeded = id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
           const bool limit_stop = id(zone_${zone}_limit_active_value) && limit_exceeded;
           const bool effective_stop = limit_stop || id(zone_${zone}_admin_stop_value);
+          const bool relay_on = id(zone_${zone}_valve_wiring_no_value) ? !effective_stop : effective_stop;
 
           id(zone_${zone}_limit_exceeded).publish_state(limit_exceeded);
           id(zone_${zone}_limit_stop).publish_state(limit_stop);
           id(zone_${zone}_effective_stop).publish_state(effective_stop);
           id(zone_${zone}_water_allowed).publish_state(!effective_stop);
 
-          if (effective_stop) {
+          if (relay_on) {
             id(zone_${zone}_relay).turn_on();
           } else {
             id(zone_${zone}_relay).turn_off();

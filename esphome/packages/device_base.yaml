@@ -6,7 +6,7 @@ esphome:
   min_version: 2025.5.0
   project:
     name: nikalexis.aquaguard
-    version: "0.1.0"
+    version: ${firmware_revision}
 
 esp32:
   board: esp32s3box

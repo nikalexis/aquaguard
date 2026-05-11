@@ -8,7 +8,7 @@ The first ESPHome YAML implementation lives under `esphome/`.
 
 - 8 reed-switch pulse inputs, `1 L/pulse`
 - 8 relay-controlled valves, one per meter
-- valves wired to relay `NC` contact
+- configurable relay contact mode per zone, default `NC`
 - Ethernet only
 - local web UI
 - Home Assistant via ESPHome native API
@@ -32,6 +32,7 @@ Based on the official ESPHome device profile:
 Per zone:
 
 - `Zone Name` is a persisted writable friendly label
+- `Valve Wiring` selects the relay contact behavior: `NC` or `NO`
 - `Consumption` is the persisted liter counter and the single writable source of truth
 - `Limit Active` enables/disables limit enforcement
 - `Limit` is the configured consumption threshold in liters
@@ -44,10 +45,10 @@ Computed logic:
 - `Effective Stop = limit_stop OR admin_stop`
 - `Water Allowed = NOT effective_stop`
 
-Relay behavior with valve on `NC`:
+Relay behavior:
 
-- relay/GPIO `0` = coil de-energized = water allowed
-- relay/GPIO `1` = coil energized = water stopped
+- `NC` mode, default fail-open: relay/GPIO `0` allows water, relay/GPIO `1` stops water
+- `NO` mode, controller-forced: relay/GPIO `1` allows water, relay/GPIO `0` stops water
 
 Pulse validity:
 
@@ -78,6 +79,7 @@ Use the onboard RGB LED as a simple device-level indicator:
 Writable:
 
 - `Zone Name`
+- `Valve Wiring`
 - `Consumption`
 - `Limit Active`
 - `Limit`
@@ -103,7 +105,7 @@ Read-only:
 - Use `preferences.flash_write_interval: 5min` to batch flash writes and reduce wear.
 - Consumption should still be updated in RAM and published on every accepted pulse.
 - After an unexpected power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter.
-- Default values: `Zone Name = Zone N`, `Consumption = 0`, `Limit Active = OFF`, `Limit = 0`, `Admin Stop = OFF`.
+- Default values: `Zone Name = Zone N`, `Valve Wiring = NC`, `Consumption = 0`, `Limit Active = OFF`, `Limit = 0`, `Admin Stop = OFF`.
 
 ## Planned Structure
 
@@ -151,6 +153,6 @@ docker run --rm -v "$PWD":/config -w /config ghcr.io/esphome/esphome:2026.4.5 co
 Before flashing hardware, confirm:
 
 - ESPHome validation/compile output
-- the `NC` relay logic
+- the selected `NC`/`NO` relay logic per zone
 - the physical DI/relay-to-zone wiring
 - whether any additional diagnostics should be exposed
