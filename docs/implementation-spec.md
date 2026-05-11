@@ -48,11 +48,13 @@ packages:
 
 - `zone_N_name`
 - `zone_N_valve_wiring`
-- `zone_N_consumption_l`
-- `zone_N_limit_active`
-- `zone_N_limit_l`
-- `zone_N_limit_exceeded`
-- `zone_N_limit_stop`
+- `zone_N_meter_consumption_l`
+- `zone_N_period_baseline_l`
+- `zone_N_period_consumption_l`
+- `zone_N_period_limit_active`
+- `zone_N_period_limit_l`
+- `zone_N_period_limit_exceeded`
+- `zone_N_period_limit_stop`
 - `zone_N_admin_stop`
 - `zone_N_effective_stop`
 - `zone_N_water_allowed`
@@ -125,12 +127,14 @@ Healthy means:
 - writable `Valve Wiring`
 - pulse input
 - relay output
-- writable `Consumption`
-- writable `Limit Active`
-- writable `Limit`
+- writable `Meter Consumption`
+- writable `Period Baseline`
+- writable `Period Limit Active`
+- writable `Period Limit`
 - writable `Admin Stop`
-- read-only `Limit Exceeded`
-- read-only `Limit Stop`
+- read-only `Period Consumption`
+- read-only `Period Limit Exceeded`
+- read-only `Period Limit Stop`
 - read-only `Effective Stop`
 - read-only `Water Allowed`
 - read-only `Flow Rate EMA 5m`
@@ -143,19 +147,21 @@ Zone-specific persisted values should live in this template with IDs derived fro
 
 Pulse counting:
 
-- each valid pulse increments `Consumption` by `1`
+- each valid pulse increments `Meter Consumption` by `1`
 - a pulse is valid only after debounce/filtering suppresses reed-switch contact bounce
-- publish the updated consumption after each increment
+- publish the updated meter consumption and period consumption after each increment
 - rely on ESPHome persistence with `preferences.flash_write_interval: 5min` instead of forcing a manual flash write on every pulse
 - store last-pulse time after each increment
 - re-evaluate zone after each increment
 
-Consumption resync:
+Meter and period consumption:
 
-- `Consumption` is writable by admin
-- implement `Consumption` as one writable number entity in liters
-- manual edits are for meter resynchronization
-- re-evaluate zone after each edit
+- `Meter Consumption` is writable by admin
+- implement `Meter Consumption` as one writable number entity in liters
+- manual meter edits are for meter resynchronization
+- `Period Baseline` is writable by admin and stores the meter reading at the start of the current period
+- `Period Consumption` is read-only and calculated as `max(0, meter_consumption - period_baseline)`
+- re-evaluate zone after meter or baseline edits
 
 Zone naming:
 
@@ -171,10 +177,10 @@ Valve wiring:
 - `NC` means relay `OFF` allows water and relay `ON` stops water
 - `NO` means relay `ON` allows water and relay `OFF` stops water
 
-Limit logic:
+Period limit logic:
 
-- `limit_exceeded = consumption >= limit`
-- `limit_stop = limit_active AND limit_exceeded`
+- `period_limit_exceeded = period_consumption >= period_limit`
+- `period_limit_stop = period_limit_active AND period_limit_exceeded`
 
 Admin stop:
 
@@ -183,7 +189,7 @@ Admin stop:
 
 Final relay logic:
 
-- `effective_stop = limit_stop OR admin_stop`
+- `effective_stop = period_limit_stop OR admin_stop`
 - `water_allowed = NOT effective_stop`
 - in `NC` mode, relay `ON` when `effective_stop = true`
 - in `NO` mode, relay `ON` when `effective_stop = false`
@@ -209,9 +215,10 @@ Persist at minimum:
 
 - `Zone Name`
 - `Valve Wiring`
-- `Consumption`
-- `Limit Active`
-- `Limit`
+- `Meter Consumption`
+- `Period Baseline`
+- `Period Limit Active`
+- `Period Limit`
 - `Admin Stop`
 - last-pulse epoch
 
@@ -219,14 +226,15 @@ Default values:
 
 - `Zone Name = Zone N`
 - `Valve Wiring = NC`
-- `Consumption = 0`
-- `Limit Active = OFF`
-- `Limit = 0`
+- `Meter Consumption = 0`
+- `Period Baseline = 0`
+- `Period Limit Active = OFF`
+- `Period Limit = 0`
 - `Admin Stop = OFF`
 
 Flash-write caution:
 
-- consumption may change frequently
+- meter consumption may change frequently
 - use `preferences.flash_write_interval: 5min`
 - do not force immediate flash writes on every pulse
 - accept that after sudden power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter
@@ -234,7 +242,7 @@ Flash-write caution:
 Boot restore order:
 
 1. restore persisted values
-2. compute `limit_exceeded`, `limit_stop`, `effective_stop`
+2. compute `period_consumption`, `period_limit_exceeded`, `period_limit_stop`, `effective_stop`
 3. apply relay state
 4. publish entities
 
@@ -246,6 +254,6 @@ Boot restore order:
 - native API enabled
 - local web UI enabled
 - per-zone relay contact mode defaults to `NC` and can be changed to `NO`
-- persisted consumption and control state
+- persisted meter consumption, period baseline, period limit, and control state
 - public per-zone flow, pulse-history, and stop-state diagnostics
 - raw flow sensor kept internal

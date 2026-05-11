@@ -12,7 +12,7 @@ The first ESPHome YAML implementation lives under `esphome/`.
 - Ethernet only
 - local web UI
 - Home Assistant via ESPHome native API
-- persisted consumption and control state across reboot
+- persisted meter consumption, period baseline, period limit, and control state across reboot
 
 ## Hardware Model
 
@@ -33,16 +33,18 @@ Per zone:
 
 - `Zone Name` is a persisted writable friendly label
 - `Valve Wiring` selects the relay contact behavior: `NC` or `NO`
-- `Consumption` is the persisted liter counter and the single writable source of truth
-- `Limit Active` enables/disables limit enforcement
-- `Limit` is the configured consumption threshold in liters
-- `Admin Stop` forces water off regardless of limit
+- `Meter Consumption` is the persisted physical meter counter in liters
+- `Period Baseline` is the persisted meter reading used as the current period starting point
+- `Period Limit Active` enables/disables period limit enforcement
+- `Period Limit` is the configured period consumption threshold in liters
+- `Admin Stop` forces water off regardless of period limit
 
 Computed logic:
 
-- `Limit Exceeded = consumption >= limit`
-- `Limit Stop = limit_active AND limit_exceeded`
-- `Effective Stop = limit_stop OR admin_stop`
+- `Period Consumption = max(0, meter_consumption - period_baseline)`
+- `Period Limit Exceeded = period_consumption >= period_limit`
+- `Period Limit Stop = period_limit_active AND period_limit_exceeded`
+- `Effective Stop = period_limit_stop OR admin_stop`
 - `Water Allowed = NOT effective_stop`
 
 Relay behavior:
@@ -80,15 +82,17 @@ Writable:
 
 - `Zone Name`
 - `Valve Wiring`
-- `Consumption`
-- `Limit Active`
-- `Limit`
+- `Meter Consumption`
+- `Period Baseline`
+- `Period Limit Active`
+- `Period Limit`
 - `Admin Stop`
 
 Read-only:
 
-- `Limit Exceeded`
-- `Limit Stop`
+- `Period Consumption`
+- `Period Limit Exceeded`
+- `Period Limit Stop`
 - `Effective Stop`
 - `Water Allowed`
 - `Flow Rate EMA 5m`
@@ -101,11 +105,13 @@ Read-only:
 
 ## Implementation Notes
 
-- `Consumption` should be implemented as a single writable number entity in liters.
+- `Meter Consumption` should be implemented as a single writable number entity in liters.
+- `Period Baseline` should be implemented as a writable number entity in liters.
+- `Period Consumption` should be read-only and clamped to `0` if the meter reading is lower than the baseline.
 - Use `preferences.flash_write_interval: 5min` to batch flash writes and reduce wear.
-- Consumption should still be updated in RAM and published on every accepted pulse.
+- Meter consumption and period consumption should still be updated in RAM and published on every accepted pulse.
 - After an unexpected power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter.
-- Default values: `Zone Name = Zone N`, `Valve Wiring = NC`, `Consumption = 0`, `Limit Active = OFF`, `Limit = 0`, `Admin Stop = OFF`.
+- Default values: `Zone Name = Zone N`, `Valve Wiring = NC`, `Meter Consumption = 0`, `Period Baseline = 0`, `Period Limit Active = OFF`, `Period Limit = 0`, `Admin Stop = OFF`.
 
 ## Planned Structure
 

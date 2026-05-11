@@ -1,15 +1,20 @@
 globals:
-  - id: zone_${zone}_consumption_l_value
+  - id: zone_${zone}_meter_consumption_l_value
     type: float
     restore_value: true
     initial_value: "0.0"
 
-  - id: zone_${zone}_limit_l_value
+  - id: zone_${zone}_period_baseline_l_value
     type: float
     restore_value: true
     initial_value: "0.0"
 
-  - id: zone_${zone}_limit_active_value
+  - id: zone_${zone}_period_limit_l_value
+    type: float
+    restore_value: true
+    initial_value: "0.0"
+
+  - id: zone_${zone}_period_limit_active_value
     type: bool
     restore_value: true
     initial_value: "false"
@@ -65,8 +70,8 @@ select:
 
 number:
   - platform: template
-    id: zone_${zone}_consumption_l
-    name: "Zone ${zone} Consumption"
+    id: zone_${zone}_meter_consumption_l
+    name: "Zone ${zone} Meter Consumption"
     unit_of_measurement: "L"
     icon: "mdi:counter"
     min_value: 0
@@ -77,19 +82,18 @@ number:
       sorting_group_id: zone_${zone}_group
       sorting_weight: 10
     lambda: |-
-      return id(zone_${zone}_consumption_l_value);
+      return id(zone_${zone}_meter_consumption_l_value);
     set_action:
       - lambda: |-
-          id(zone_${zone}_consumption_l_value) = x;
-          id(zone_${zone}_consumption_l).publish_state(x);
-      - component.update: zone_${zone}_last_pulse_age
+          id(zone_${zone}_meter_consumption_l_value) = x;
+          id(zone_${zone}_meter_consumption_l).publish_state(x);
       - script.execute: zone_${zone}_apply_state
 
   - platform: template
-    id: zone_${zone}_limit_l
-    name: "Zone ${zone} Limit"
+    id: zone_${zone}_period_baseline_l
+    name: "Zone ${zone} Period Baseline"
     unit_of_measurement: "L"
-    icon: "mdi:water-alert"
+    icon: "mdi:ray-start-arrow"
     min_value: 0
     max_value: 100000000
     step: 1
@@ -98,11 +102,31 @@ number:
       sorting_group_id: zone_${zone}_group
       sorting_weight: 20
     lambda: |-
-      return id(zone_${zone}_limit_l_value);
+      return id(zone_${zone}_period_baseline_l_value);
     set_action:
       - lambda: |-
-          id(zone_${zone}_limit_l_value) = x;
-          id(zone_${zone}_limit_l).publish_state(x);
+          id(zone_${zone}_period_baseline_l_value) = x;
+          id(zone_${zone}_period_baseline_l).publish_state(x);
+      - script.execute: zone_${zone}_apply_state
+
+  - platform: template
+    id: zone_${zone}_period_limit_l
+    name: "Zone ${zone} Period Limit"
+    unit_of_measurement: "L"
+    icon: "mdi:water-alert"
+    min_value: 0
+    max_value: 100000000
+    step: 1
+    mode: box
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 30
+    lambda: |-
+      return id(zone_${zone}_period_limit_l_value);
+    set_action:
+      - lambda: |-
+          id(zone_${zone}_period_limit_l_value) = x;
+          id(zone_${zone}_period_limit_l).publish_state(x);
       - script.execute: zone_${zone}_apply_state
 
 switch:
@@ -118,24 +142,24 @@ switch:
       inverted: false
 
   - platform: template
-    id: zone_${zone}_limit_active
-    name: "Zone ${zone} Limit Active"
+    id: zone_${zone}_period_limit_active
+    name: "Zone ${zone} Period Limit Active"
     icon: "mdi:water-check"
     restore_mode: DISABLED
     web_server:
       sorting_group_id: zone_${zone}_group
-      sorting_weight: 30
+      sorting_weight: 40
     lambda: |-
-      return id(zone_${zone}_limit_active_value);
+      return id(zone_${zone}_period_limit_active_value);
     turn_on_action:
       - lambda: |-
-          id(zone_${zone}_limit_active_value) = true;
-          id(zone_${zone}_limit_active).publish_state(true);
+          id(zone_${zone}_period_limit_active_value) = true;
+          id(zone_${zone}_period_limit_active).publish_state(true);
       - script.execute: zone_${zone}_apply_state
     turn_off_action:
       - lambda: |-
-          id(zone_${zone}_limit_active_value) = false;
-          id(zone_${zone}_limit_active).publish_state(false);
+          id(zone_${zone}_period_limit_active_value) = false;
+          id(zone_${zone}_period_limit_active).publish_state(false);
       - script.execute: zone_${zone}_apply_state
 
   - platform: template
@@ -145,7 +169,7 @@ switch:
     restore_mode: DISABLED
     web_server:
       sorting_group_id: zone_${zone}_group
-      sorting_weight: 40
+      sorting_weight: 50
     lambda: |-
       return id(zone_${zone}_admin_stop_value);
     turn_on_action:
@@ -174,8 +198,8 @@ binary_sensor:
     on_press:
       then:
         - lambda: |-
-            id(zone_${zone}_consumption_l_value) += 1.0f;
-            id(zone_${zone}_consumption_l).publish_state(id(zone_${zone}_consumption_l_value));
+            id(zone_${zone}_meter_consumption_l_value) += 1.0f;
+            id(zone_${zone}_meter_consumption_l).publish_state(id(zone_${zone}_meter_consumption_l_value));
 
             auto now = id(sntp_time).now();
             if (now.is_valid()) {
@@ -186,25 +210,25 @@ binary_sensor:
         - script.execute: zone_${zone}_apply_state
 
   - platform: template
-    id: zone_${zone}_limit_exceeded
-    name: "Zone ${zone} Limit Exceeded"
+    id: zone_${zone}_period_limit_exceeded
+    name: "Zone ${zone} Period Limit Exceeded"
     icon: "mdi:water-alert"
     web_server:
       sorting_group_id: zone_${zone}_group
       sorting_weight: 80
     lambda: |-
-      return id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
+      return id(zone_${zone}_period_consumption_l).state >= id(zone_${zone}_period_limit_l_value);
 
   - platform: template
-    id: zone_${zone}_limit_stop
-    name: "Zone ${zone} Limit Stop"
+    id: zone_${zone}_period_limit_stop
+    name: "Zone ${zone} Period Limit Stop"
     icon: "mdi:water-remove"
     web_server:
       sorting_group_id: zone_${zone}_group
       sorting_weight: 70
     lambda: |-
-      return id(zone_${zone}_limit_active_value) &&
-             id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
+      return id(zone_${zone}_period_limit_active_value) &&
+             id(zone_${zone}_period_consumption_l).state >= id(zone_${zone}_period_limit_l_value);
 
   - platform: template
     id: zone_${zone}_effective_stop
@@ -214,9 +238,9 @@ binary_sensor:
       sorting_group_id: zone_${zone}_group
       sorting_weight: 60
     lambda: |-
-      const bool limit_stop = id(zone_${zone}_limit_active_value) &&
-                              id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
-      return limit_stop || id(zone_${zone}_admin_stop_value);
+      const bool period_limit_stop = id(zone_${zone}_period_limit_active_value) &&
+                                     id(zone_${zone}_period_consumption_l).state >= id(zone_${zone}_period_limit_l_value);
+      return period_limit_stop || id(zone_${zone}_admin_stop_value);
 
   - platform: template
     id: zone_${zone}_water_allowed
@@ -224,13 +248,28 @@ binary_sensor:
     icon: "mdi:valve-open"
     web_server:
       sorting_group_id: zone_${zone}_group
-      sorting_weight: 50
+      sorting_weight: 55
     lambda: |-
-      const bool limit_stop = id(zone_${zone}_limit_active_value) &&
-                              id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
-      return !(limit_stop || id(zone_${zone}_admin_stop_value));
+      const bool period_limit_stop = id(zone_${zone}_period_limit_active_value) &&
+                                     id(zone_${zone}_period_consumption_l).state >= id(zone_${zone}_period_limit_l_value);
+      return !(period_limit_stop || id(zone_${zone}_admin_stop_value));
 
 sensor:
+  - platform: template
+    id: zone_${zone}_period_consumption_l
+    name: "Zone ${zone} Period Consumption"
+    unit_of_measurement: "L"
+    icon: "mdi:counter"
+    accuracy_decimals: 0
+    state_class: measurement
+    update_interval: never
+    web_server:
+      sorting_group_id: zone_${zone}_group
+      sorting_weight: 15
+    lambda: |-
+      const float raw_period_consumption = id(zone_${zone}_meter_consumption_l_value) - id(zone_${zone}_period_baseline_l_value);
+      return raw_period_consumption > 0.0f ? raw_period_consumption : 0.0f;
+
   - platform: pulse_meter
     id: zone_${zone}_flow_rate_ema_5m
     name: "Zone ${zone} Flow Rate EMA 5m"
@@ -302,10 +341,11 @@ script:
     mode: restart
     then:
       - lambda: |-
-          id(zone_${zone}_consumption_l).publish_state(id(zone_${zone}_consumption_l_value));
-          id(zone_${zone}_limit_l).publish_state(id(zone_${zone}_limit_l_value));
+          id(zone_${zone}_meter_consumption_l).publish_state(id(zone_${zone}_meter_consumption_l_value));
+          id(zone_${zone}_period_baseline_l).publish_state(id(zone_${zone}_period_baseline_l_value));
+          id(zone_${zone}_period_limit_l).publish_state(id(zone_${zone}_period_limit_l_value));
           id(zone_${zone}_valve_wiring).publish_state(id(zone_${zone}_valve_wiring_no_value) ? "NO" : "NC");
-          id(zone_${zone}_limit_active).publish_state(id(zone_${zone}_limit_active_value));
+          id(zone_${zone}_period_limit_active).publish_state(id(zone_${zone}_period_limit_active_value));
           id(zone_${zone}_admin_stop).publish_state(id(zone_${zone}_admin_stop_value));
       - component.update: zone_${zone}_last_pulse_age
       - component.update: zone_${zone}_last_pulse_timestamp
@@ -314,14 +354,16 @@ script:
   - id: zone_${zone}_apply_state
     mode: restart
     then:
+      - component.update: zone_${zone}_period_consumption_l
       - lambda: |-
-          const bool limit_exceeded = id(zone_${zone}_consumption_l_value) >= id(zone_${zone}_limit_l_value);
-          const bool limit_stop = id(zone_${zone}_limit_active_value) && limit_exceeded;
-          const bool effective_stop = limit_stop || id(zone_${zone}_admin_stop_value);
+          const float period_consumption = id(zone_${zone}_period_consumption_l).state;
+          const bool period_limit_exceeded = period_consumption >= id(zone_${zone}_period_limit_l_value);
+          const bool period_limit_stop = id(zone_${zone}_period_limit_active_value) && period_limit_exceeded;
+          const bool effective_stop = period_limit_stop || id(zone_${zone}_admin_stop_value);
           const bool relay_on = id(zone_${zone}_valve_wiring_no_value) ? !effective_stop : effective_stop;
 
-          id(zone_${zone}_limit_exceeded).publish_state(limit_exceeded);
-          id(zone_${zone}_limit_stop).publish_state(limit_stop);
+          id(zone_${zone}_period_limit_exceeded).publish_state(period_limit_exceeded);
+          id(zone_${zone}_period_limit_stop).publish_state(period_limit_stop);
           id(zone_${zone}_effective_stop).publish_state(effective_stop);
           id(zone_${zone}_water_allowed).publish_state(!effective_stop);
 

@@ -7,9 +7,11 @@ The controller is an Ethernet-only ESPHome node for the Waveshare `ESP32-S3-ETH-
 - 1 persisted writable friendly name
 - 1 persisted `Valve Wiring` selection, default `NC`
 - 1 reed-switch meter input
-- 1 persisted consumption counter in liters
-- 1 persisted `Limit Active` toggle
-- 1 persisted consumption `Limit`
+- 1 persisted `Meter Consumption` counter in liters
+- 1 persisted `Period Baseline` meter reading in liters
+- 1 read-only calculated `Period Consumption` value in liters
+- 1 persisted `Period Limit Active` toggle
+- 1 persisted `Period Limit`
 - 1 persisted `Admin Stop` toggle
 - 1 relay output controlling one valve
 
@@ -32,16 +34,18 @@ The implementation should follow the official ESPHome device profile:
 
 Pulse handling:
 
-- each valid pulse adds `1` liter to `Consumption`
+- each valid pulse adds `1` liter to `Meter Consumption`
 - a pulse is valid only after debounce/filtering suppresses reed-switch contact bounce
-- `Consumption` is persisted
-- admin may manually edit `Consumption` to resync with the mechanical meter
+- `Meter Consumption` is persisted
+- admin may manually edit `Meter Consumption` to resync with the mechanical meter
+- admin may set `Period Baseline` to the meter reading at the beginning of a billing or monitoring period
+- `Period Consumption = max(0, meter_consumption - period_baseline)`
 
 Stop logic:
 
-- `Limit Exceeded = consumption >= limit`
-- `Limit Stop = limit_active AND limit_exceeded`
-- `Effective Stop = limit_stop OR admin_stop`
+- `Period Limit Exceeded = period_consumption >= period_limit`
+- `Period Limit Stop = period_limit_active AND period_limit_exceeded`
+- `Effective Stop = period_limit_stop OR admin_stop`
 - `Water Allowed = NOT effective_stop`
 
 Relay behavior:
@@ -96,15 +100,17 @@ Writable per zone:
 
 - `Zone Name`
 - `Valve Wiring`
-- `Consumption`
-- `Limit Active`
-- `Limit`
+- `Meter Consumption`
+- `Period Baseline`
+- `Period Limit Active`
+- `Period Limit`
 - `Admin Stop`
 
 Read-only per zone:
 
-- `Limit Exceeded`
-- `Limit Stop`
+- `Period Consumption`
+- `Period Limit Exceeded`
+- `Period Limit Stop`
 - `Effective Stop`
 - `Water Allowed`
 - `Flow Rate EMA 5m`
@@ -119,12 +125,13 @@ Default per zone:
 
 - `Zone Name = Zone N`
 - `Valve Wiring = NC`
-- `Consumption = 0`
-- `Limit Active = OFF`
-- `Limit = 0`
+- `Meter Consumption = 0`
+- `Period Baseline = 0`
+- `Period Limit Active = OFF`
+- `Period Limit = 0`
 - `Admin Stop = OFF`
 
-Persistence should cover writable zone state and last-pulse epoch. The YAML should publish every accepted pulse immediately in RAM and expose it through the API/UI, but use `preferences.flash_write_interval: 5min` so flash commits are batched. After unexpected power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter.
+Persistence should cover writable zone state and last-pulse epoch. The YAML should publish every accepted pulse immediately in RAM and expose the updated meter and period consumption through the API/UI, but use `preferences.flash_write_interval: 5min` so flash commits are batched. After unexpected power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter.
 
 ## File Responsibilities
 
@@ -157,7 +164,7 @@ Primary integration path:
 
 This covers:
 
-- reading consumption
+- reading meter and period consumption
 - updating writable zone controls
 - reading status and diagnostics
 
