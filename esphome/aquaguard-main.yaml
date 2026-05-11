@@ -2,7 +2,7 @@ substitutions:
   device_name: aquaguard
   device_friendly_name: AquaGuard
   device_comment: "8-zone water consumption monitor and configurable relay shutoff controller"
-  firmware_revision: "0.2.0"
+  firmware_revision: "2026.5.11.0"
   timezone: Europe/Athens
 
 packages:
