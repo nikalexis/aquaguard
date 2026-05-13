@@ -15,6 +15,13 @@ The controller is an Ethernet-only ESPHome node for the Waveshare `ESP32-S3-ETH-
 - 1 persisted `Admin Stop` toggle
 - 1 relay output controlling one valve
 
+The device also has shared period-alignment controls:
+
+- 1 manual `Start New Period` button
+- 1 persisted `Automatic Yearly Period Alignment` toggle, default `OFF`
+- persisted `Period Alignment Month` and `Period Alignment Day`, default January 1
+- read-only `Current Period Year`
+
 ## Hardware
 
 The implementation should follow the official ESPHome device profile:
@@ -72,6 +79,26 @@ Per zone pulse-history entities:
 
 - `Last Pulse Age` as read-only sensor
 - `Last Pulse Timestamp` as read-only text sensor
+
+## Period Alignment
+
+Manual alignment:
+
+- `Start New Period` copies each zone's `Meter Consumption` into its `Period Baseline`
+- each zone recomputes `Period Consumption` and stop state after alignment
+- when time is valid, manual alignment updates `Current Period Year` to the active configured period year
+
+Automatic alignment:
+
+- runs only when `Automatic Yearly Period Alignment` is enabled
+- uses the configured month/day in the device timezone
+- aligns once per period year when the reset date has passed
+- catches up after seasonal power-off once SNTP time is valid
+- ignores invalid configured dates such as February 31
+
+`Current Period Year` tracks the configured period year whose baselines are active. Before the configured reset date, that may be the previous calendar year.
+
+On first SNTP sync, if `Current Period Year` is still `0`, it is initialized to the current calendar year.
 
 ## Device LED
 
@@ -133,6 +160,8 @@ Default per zone:
 
 Persistence should cover writable zone state and last-pulse epoch. The YAML should publish every accepted pulse immediately in RAM and expose the updated meter and period consumption through the API/UI, but use `preferences.flash_write_interval: 5min` so flash commits are batched. After unexpected power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter.
 
+Shared period-alignment persistence should cover automatic alignment enablement, alignment month/day, and current period year.
+
 ## File Responsibilities
 
 Top level:
@@ -147,7 +176,7 @@ Shared packages:
 - `time.yaml`: SNTP + RTC config
 - `web.yaml`: web UI
 - `persistence.yaml`: boot ordering, restore behavior, and `preferences.flash_write_interval: 5min`
-- `scripts.yaml`: shared non-zone helpers, if needed
+- `scripts.yaml`: shared non-zone helpers and period-alignment controls
 - `diagnostics.yaml`: node-level diagnostics
 
 Per zone:

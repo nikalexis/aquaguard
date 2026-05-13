@@ -143,6 +143,29 @@ Healthy means:
 
 Zone-specific persisted values should live in this template with IDs derived from `${zone}`.
 
+## Period Alignment Responsibilities
+
+Expose a shared `Period Alignment` UI group with:
+
+- `Start New Period`
+- `Automatic Yearly Period Alignment`
+- `Period Alignment Month`
+- `Period Alignment Day`
+- read-only `Current Period Year`
+
+`Start New Period` should copy every zone's `Meter Consumption` into that zone's `Period Baseline`, then re-evaluate all zones.
+
+Automatic yearly alignment:
+
+- default disabled
+- default reset date January 1
+- use SNTP time in the configured timezone
+- initialize `Current Period Year` to the current calendar year on first SNTP sync if it is still `0`
+- run after SNTP sync and daily shortly after midnight
+- catch up after seasonal power-off if the reset date already passed
+- ignore invalid dates such as February 31
+- update `Current Period Year` after successful automatic alignment
+
 ## Runtime Rules
 
 Pulse counting:
@@ -162,6 +185,7 @@ Meter and period consumption:
 - `Period Baseline` is writable by admin and stores the meter reading at the start of the current period
 - `Period Consumption` is read-only and calculated as `max(0, meter_consumption - period_baseline)`
 - re-evaluate zone after meter or baseline edits
+- `Start New Period` aligns all baselines to current meter values
 
 Zone naming:
 
@@ -221,6 +245,9 @@ Persist at minimum:
 - `Period Limit`
 - `Admin Stop`
 - last-pulse epoch
+- automatic yearly period alignment enabled
+- period alignment month/day
+- current period year
 
 Default values:
 
@@ -231,6 +258,10 @@ Default values:
 - `Period Limit Active = OFF`
 - `Period Limit = 0`
 - `Admin Stop = OFF`
+- `Automatic Yearly Period Alignment = OFF`
+- `Period Alignment Month = 1`
+- `Period Alignment Day = 1`
+- `Current Period Year = 0`
 
 Flash-write caution:
 
@@ -255,5 +286,6 @@ Boot restore order:
 - local web UI enabled
 - per-zone relay contact mode defaults to `NC` and can be changed to `NO`
 - persisted meter consumption, period baseline, period limit, and control state
+- period-alignment controls and current period year
 - public per-zone flow, pulse-history, and stop-state diagnostics
 - raw flow sensor kept internal

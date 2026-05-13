@@ -23,6 +23,20 @@ time:
         - lambda: |-
             id(sntp_synced) = true;
             id(sntp_synced_status).publish_state(true);
+            if (id(current_period_year) == 0) {
+              auto now = id(sntp_time).now();
+              if (now.is_valid()) {
+                id(current_period_year) = now.year;
+                id(current_period_year_sensor).publish_state(id(current_period_year));
+              }
+            }
         - pcf85063.write_time:
             id: rtc_time
         - script.execute: update_status_led
+        - script.execute: maybe_align_yearly_period_baselines
+    on_time:
+      - seconds: 0
+        minutes: 5
+        hours: 0
+        then:
+          - script.execute: maybe_align_yearly_period_baselines

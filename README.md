@@ -13,6 +13,7 @@ The first ESPHome YAML implementation lives under `esphome/`.
 - local web UI
 - Home Assistant via ESPHome native API
 - persisted meter consumption, period baseline, period limit, and control state across reboot
+- manual and optional automatic period-baseline alignment
 
 ## Hardware Model
 
@@ -64,6 +65,19 @@ Pulse validity:
 
 This supports reliable `Last Pulse Age` and `Last Pulse Timestamp` values.
 
+## Period Alignment
+
+The local UI includes a `Period Alignment` section for starting a new accounting/irrigation period.
+
+- `Start New Period` copies every zone's `Meter Consumption` into that zone's `Period Baseline`
+- `Automatic Yearly Period Alignment` optionally performs the same action once per configured period year
+- `Period Alignment Month` and `Period Alignment Day` define the yearly reset date, defaulting to January 1
+- `Current Period Year` is read-only and shows the active period year
+
+On first SNTP sync, `Current Period Year` is initialized to the current calendar year if it is still unset.
+
+If AquaGuard is powered off during the reset date, automatic alignment catches up after boot once SNTP time is valid. Invalid dates such as February 31 do not trigger automatic alignment.
+
 ## Device LED
 
 Use the onboard RGB LED as a simple device-level indicator:
@@ -108,6 +122,8 @@ Read-only:
 - `Meter Consumption` should be implemented as a single writable number entity in liters.
 - `Period Baseline` should be implemented as a writable number entity in liters.
 - `Period Consumption` should be read-only and clamped to `0` if the meter reading is lower than the baseline.
+- `Start New Period` should align all period baselines to the current meter values.
+- `Automatic Yearly Period Alignment` defaults to `OFF`; default reset date is January 1.
 - Use `preferences.flash_write_interval: 5min` to batch flash writes and reduce wear.
 - Meter consumption and period consumption should still be updated in RAM and published on every accepted pulse.
 - After an unexpected power loss, up to about 5 minutes of recent pulses may need manual resync from the mechanical meter.

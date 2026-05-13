@@ -55,6 +55,59 @@ text_sensor:
       sorting_weight: 50
 
 button:
+  - platform: template
+    name: "Start New Period"
+    id: start_new_period_button
+    entity_category: config
+    web_server:
+      sorting_group_id: period_alignment_group
+      sorting_weight: 10
+    on_press:
+      - script.execute: align_all_period_baselines
+      - lambda: |-
+          auto now = id(sntp_time).now();
+          if (!now.is_valid()) {
+            return;
+          }
+
+          const int year = now.year;
+          const int month = id(period_alignment_month_value);
+          const int day = id(period_alignment_day_value);
+          auto is_leap_year = [](int candidate_year) -> bool {
+            return (candidate_year % 4 == 0 && candidate_year % 100 != 0) ||
+                   (candidate_year % 400 == 0);
+          };
+          auto days_in_month = [&](int candidate_month) -> int {
+            switch (candidate_month) {
+              case 1:
+              case 3:
+              case 5:
+              case 7:
+              case 8:
+              case 10:
+              case 12:
+                return 31;
+              case 4:
+              case 6:
+              case 9:
+              case 11:
+                return 30;
+              case 2:
+                return is_leap_year(year) ? 29 : 28;
+              default:
+                return 0;
+            }
+          };
+          if (day < 1 || day > days_in_month(month)) {
+            return;
+          }
+
+          const bool reset_date_passed =
+              now.month > month ||
+              (now.month == month && now.day_of_month >= day);
+          id(current_period_year) = reset_date_passed ? year : year - 1;
+          id(current_period_year_sensor).publish_state(id(current_period_year));
+
   - platform: restart
     name: "Restart"
     id: restart_button

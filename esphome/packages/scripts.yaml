@@ -9,7 +9,194 @@ esphome:
           blue: 100%
           brightness: 40%
 
+switch:
+  - platform: template
+    name: "Automatic Yearly Period Alignment"
+    id: automatic_yearly_period_alignment
+    icon: "mdi:calendar-sync"
+    entity_category: config
+    restore_mode: DISABLED
+    web_server:
+      sorting_group_id: period_alignment_group
+      sorting_weight: 20
+    lambda: |-
+      return id(automatic_yearly_period_alignment_value);
+    turn_on_action:
+      - lambda: |-
+          id(automatic_yearly_period_alignment_value) = true;
+          id(automatic_yearly_period_alignment).publish_state(true);
+      - script.execute: maybe_align_yearly_period_baselines
+    turn_off_action:
+      - lambda: |-
+          id(automatic_yearly_period_alignment_value) = false;
+          id(automatic_yearly_period_alignment).publish_state(false);
+
+number:
+  - platform: template
+    name: "Period Alignment Month"
+    id: period_alignment_month
+    icon: "mdi:calendar-month"
+    entity_category: config
+    min_value: 1
+    max_value: 12
+    step: 1
+    mode: box
+    web_server:
+      sorting_group_id: period_alignment_group
+      sorting_weight: 30
+    lambda: |-
+      return id(period_alignment_month_value);
+    set_action:
+      - lambda: |-
+          id(period_alignment_month_value) = static_cast<int>(x);
+          id(period_alignment_month).publish_state(id(period_alignment_month_value));
+      - script.execute: maybe_align_yearly_period_baselines
+
+  - platform: template
+    name: "Period Alignment Day"
+    id: period_alignment_day
+    icon: "mdi:calendar-today"
+    entity_category: config
+    min_value: 1
+    max_value: 31
+    step: 1
+    mode: box
+    web_server:
+      sorting_group_id: period_alignment_group
+      sorting_weight: 40
+    lambda: |-
+      return id(period_alignment_day_value);
+    set_action:
+      - lambda: |-
+          id(period_alignment_day_value) = static_cast<int>(x);
+          id(period_alignment_day).publish_state(id(period_alignment_day_value));
+      - script.execute: maybe_align_yearly_period_baselines
+
+sensor:
+  - platform: template
+    name: "Current Period Year"
+    id: current_period_year_sensor
+    icon: "mdi:calendar-range"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+    update_interval: 60s
+    web_server:
+      sorting_group_id: period_alignment_group
+      sorting_weight: 50
+    lambda: |-
+      return id(current_period_year);
+
 script:
+  - id: align_all_period_baselines
+    mode: restart
+    then:
+      - lambda: |-
+          id(zone_1_period_baseline_l_value) = id(zone_1_meter_consumption_l_value);
+          id(zone_1_period_baseline_l).publish_state(id(zone_1_period_baseline_l_value));
+          id(zone_2_period_baseline_l_value) = id(zone_2_meter_consumption_l_value);
+          id(zone_2_period_baseline_l).publish_state(id(zone_2_period_baseline_l_value));
+          id(zone_3_period_baseline_l_value) = id(zone_3_meter_consumption_l_value);
+          id(zone_3_period_baseline_l).publish_state(id(zone_3_period_baseline_l_value));
+          id(zone_4_period_baseline_l_value) = id(zone_4_meter_consumption_l_value);
+          id(zone_4_period_baseline_l).publish_state(id(zone_4_period_baseline_l_value));
+          id(zone_5_period_baseline_l_value) = id(zone_5_meter_consumption_l_value);
+          id(zone_5_period_baseline_l).publish_state(id(zone_5_period_baseline_l_value));
+          id(zone_6_period_baseline_l_value) = id(zone_6_meter_consumption_l_value);
+          id(zone_6_period_baseline_l).publish_state(id(zone_6_period_baseline_l_value));
+          id(zone_7_period_baseline_l_value) = id(zone_7_meter_consumption_l_value);
+          id(zone_7_period_baseline_l).publish_state(id(zone_7_period_baseline_l_value));
+          id(zone_8_period_baseline_l_value) = id(zone_8_meter_consumption_l_value);
+          id(zone_8_period_baseline_l).publish_state(id(zone_8_period_baseline_l_value));
+      - script.execute: zone_1_apply_state
+      - script.execute: zone_2_apply_state
+      - script.execute: zone_3_apply_state
+      - script.execute: zone_4_apply_state
+      - script.execute: zone_5_apply_state
+      - script.execute: zone_6_apply_state
+      - script.execute: zone_7_apply_state
+      - script.execute: zone_8_apply_state
+
+  - id: maybe_align_yearly_period_baselines
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: |-
+              if (!id(automatic_yearly_period_alignment_value)) {
+                return false;
+              }
+
+              auto now = id(sntp_time).now();
+              if (!now.is_valid()) {
+                return false;
+              }
+
+              const int year = now.year;
+              const int month = id(period_alignment_month_value);
+              const int day = id(period_alignment_day_value);
+              auto is_leap_year = [](int candidate_year) -> bool {
+                return (candidate_year % 4 == 0 && candidate_year % 100 != 0) ||
+                       (candidate_year % 400 == 0);
+              };
+              auto days_in_month = [&](int candidate_month) -> int {
+                switch (candidate_month) {
+                  case 1:
+                  case 3:
+                  case 5:
+                  case 7:
+                  case 8:
+                  case 10:
+                  case 12:
+                    return 31;
+                  case 4:
+                  case 6:
+                  case 9:
+                  case 11:
+                    return 30;
+                  case 2:
+                    return is_leap_year(year) ? 29 : 28;
+                  default:
+                    return 0;
+                }
+              };
+              if (day < 1 || day > days_in_month(month)) {
+                return false;
+              }
+
+              const bool reset_date_passed =
+                  now.month > month ||
+                  (now.month == month && now.day_of_month >= day);
+              return reset_date_passed && id(current_period_year) < year;
+          then:
+            - lambda: |-
+                auto now = id(sntp_time).now();
+                id(zone_1_period_baseline_l_value) = id(zone_1_meter_consumption_l_value);
+                id(zone_1_period_baseline_l).publish_state(id(zone_1_period_baseline_l_value));
+                id(zone_2_period_baseline_l_value) = id(zone_2_meter_consumption_l_value);
+                id(zone_2_period_baseline_l).publish_state(id(zone_2_period_baseline_l_value));
+                id(zone_3_period_baseline_l_value) = id(zone_3_meter_consumption_l_value);
+                id(zone_3_period_baseline_l).publish_state(id(zone_3_period_baseline_l_value));
+                id(zone_4_period_baseline_l_value) = id(zone_4_meter_consumption_l_value);
+                id(zone_4_period_baseline_l).publish_state(id(zone_4_period_baseline_l_value));
+                id(zone_5_period_baseline_l_value) = id(zone_5_meter_consumption_l_value);
+                id(zone_5_period_baseline_l).publish_state(id(zone_5_period_baseline_l_value));
+                id(zone_6_period_baseline_l_value) = id(zone_6_meter_consumption_l_value);
+                id(zone_6_period_baseline_l).publish_state(id(zone_6_period_baseline_l_value));
+                id(zone_7_period_baseline_l_value) = id(zone_7_meter_consumption_l_value);
+                id(zone_7_period_baseline_l).publish_state(id(zone_7_period_baseline_l_value));
+                id(zone_8_period_baseline_l_value) = id(zone_8_meter_consumption_l_value);
+                id(zone_8_period_baseline_l).publish_state(id(zone_8_period_baseline_l_value));
+                id(current_period_year) = now.year;
+                id(current_period_year_sensor).publish_state(id(current_period_year));
+            - script.execute: zone_1_apply_state
+            - script.execute: zone_2_apply_state
+            - script.execute: zone_3_apply_state
+            - script.execute: zone_4_apply_state
+            - script.execute: zone_5_apply_state
+            - script.execute: zone_6_apply_state
+            - script.execute: zone_7_apply_state
+            - script.execute: zone_8_apply_state
+
   - id: update_status_led
     mode: restart
     then:

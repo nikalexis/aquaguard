@@ -27,6 +27,9 @@ web_server:
     - id: zone_8_group
       name: "Zone 8"
       sorting_weight: 80
+    - id: period_alignment_group
+      name: "Period Alignment"
+      sorting_weight: 85
     - id: diagnostics_group
       name: "Diagnostics"
       sorting_weight: 90

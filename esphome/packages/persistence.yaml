@@ -11,3 +11,23 @@ globals:
     type: bool
     restore_value: false
     initial_value: "false"
+
+  - id: automatic_yearly_period_alignment_value
+    type: bool
+    restore_value: true
+    initial_value: "false"
+
+  - id: period_alignment_month_value
+    type: int
+    restore_value: true
+    initial_value: "1"
+
+  - id: period_alignment_day_value
+    type: int
+    restore_value: true
+    initial_value: "1"
+
+  - id: current_period_year
+    type: int
+    restore_value: true
+    initial_value: "0"
