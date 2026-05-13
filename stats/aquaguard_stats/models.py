@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 
 ZONE_COUNT = 8
@@ -47,9 +47,36 @@ class ZoneDailySnapshot:
 class DailyConsumptionPoint:
     snapshot_date: date
     zone_name: str
-    meter_consumption_l: float
+    meter_consumption_l: float | None
     daily_consumption_l: float | None
     partial: bool
+    missing: bool = False
+
+
+@dataclass(frozen=True)
+class AvailableMonth:
+    year: int
+    month: int
+
+
+@dataclass(frozen=True)
+class HistoryRange:
+    mode: str
+    start_date: date
+    end_date: date
+    selected_year: int
+    selected_month: int
+    available_months: list[AvailableMonth]
+
+    @property
+    def is_monthly(self) -> bool:
+        return self.mode == "monthly"
+
+    @property
+    def label(self) -> str:
+        if self.is_monthly:
+            return self.start_date.strftime("%B %Y")
+        return "Last 30 days"
 
 
 @dataclass(frozen=True)
@@ -163,5 +190,61 @@ def snapshots_to_daily_points(
             )
         )
         previous = snapshot
+
+    return points
+
+
+def snapshots_to_calendar_daily_points(
+    snapshots: list[ZoneDailySnapshot],
+    start_date: date,
+    end_date: date,
+) -> list[DailyConsumptionPoint]:
+    snapshots_by_date = {
+        snapshot.snapshot_date: snapshot
+        for snapshot in snapshots
+    }
+    points: list[DailyConsumptionPoint] = []
+    previous_snapshot: ZoneDailySnapshot | None = None
+    previous_calendar_day_had_snapshot = False
+
+    current = start_date
+    while current <= end_date:
+        snapshot = snapshots_by_date.get(current)
+        if snapshot is None:
+            points.append(
+                DailyConsumptionPoint(
+                    snapshot_date=current,
+                    zone_name="",
+                    meter_consumption_l=None,
+                    daily_consumption_l=None,
+                    partial=False,
+                    missing=True,
+                )
+            )
+            previous_calendar_day_had_snapshot = False
+            current += timedelta(days=1)
+            continue
+
+        if previous_snapshot is None or not previous_calendar_day_had_snapshot:
+            daily_consumption = None
+            partial = True
+        else:
+            delta = snapshot.meter_consumption_l - previous_snapshot.meter_consumption_l
+            daily_consumption = delta if delta >= 0 else None
+            partial = delta < 0
+
+        points.append(
+            DailyConsumptionPoint(
+                snapshot_date=current,
+                zone_name=snapshot.zone_name,
+                meter_consumption_l=snapshot.meter_consumption_l,
+                daily_consumption_l=daily_consumption,
+                partial=partial,
+                missing=False,
+            )
+        )
+        previous_snapshot = snapshot
+        previous_calendar_day_had_snapshot = True
+        current += timedelta(days=1)
 
     return points

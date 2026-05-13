@@ -130,8 +130,65 @@
               <h2 id="daily-consumption-heading">Daily consumption</h2>
             </div>
           </div>
-          <span>{{ points | length }} snapshots</span>
+          <span>{{ history_range.label }} · {{ points | length }} days</span>
         </div>
+
+        <form class="history-controls" method="get" action="/zones/{{ zone_id }}">
+          <div class="range-toggle" role="radiogroup" aria-label="History range">
+            <label class="{{ 'active' if not history_range.is_monthly else '' }}">
+              <input
+                type="radio"
+                name="range"
+                value="last30"
+                {% if not history_range.is_monthly %}checked{% endif %}
+                onchange="this.form.submit()"
+              >
+              Last 30 days
+            </label>
+            <label class="{{ 'active' if history_range.is_monthly else '' }}">
+              <input
+                type="radio"
+                name="range"
+                value="monthly"
+                {% if history_range.is_monthly %}checked{% endif %}
+                onchange="this.form.submit()"
+              >
+              Monthly
+            </label>
+          </div>
+
+          <div class="monthly-controls {{ '' if history_range.is_monthly else 'is-hidden' }}">
+            <label>
+              <span>Year</span>
+              <select name="year" onchange="this.form.range.value='monthly'; this.form.submit()">
+                {% for available_month in history_range.available_months %}
+                  {% if loop.changed(available_month.year) %}
+                    <option
+                      value="{{ available_month.year }}"
+                      {% if available_month.year == history_range.selected_year %}selected{% endif %}
+                    >
+                      {{ available_month.year }}
+                    </option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </label>
+            <label>
+              <span>Month</span>
+              <select name="month" onchange="this.form.range.value='monthly'; this.form.submit()">
+                {% for month_name in month_names %}
+                  {% set month_number = loop.index %}
+                  <option
+                    value="{{ month_number }}"
+                    {% if month_number == history_range.selected_month %}selected{% endif %}
+                  >
+                    {{ month_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+        </form>
 
         <div class="chart-panel">
           {% if points %}
@@ -141,9 +198,9 @@
                 {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
                 <div class="bar-wrap">
                   <div
-                    class="bar {{ 'partial' if point.partial else '' }}"
+                    class="bar {{ 'missing' if point.missing else 'partial' if point.partial else '' }}"
                     style="height: {{ [height, 100] | min }}%"
-                    title="{{ point.snapshot_date.isoformat() }}: {{ point.daily_consumption_l if point.daily_consumption_l is not none else 'partial' }} L"
+                    title="{{ point.snapshot_date.isoformat() }}: {% if point.missing %}missing{% elif point.daily_consumption_l is not none %}{{ point.daily_consumption_l }} L{% else %}partial{% endif %}"
                   ></div>
                   <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
                 </div>
@@ -162,13 +219,21 @@
                   <tr>
                     <td>{{ point.snapshot_date.isoformat() }}</td>
                     <td>
-                      {% if point.daily_consumption_l is none %}
+                      {% if point.missing %}
+                        Missing
+                      {% elif point.daily_consumption_l is none %}
                         Partial
                       {% else %}
                         {{ "%.0f"|format(point.daily_consumption_l) }} L
                       {% endif %}
                     </td>
-                    <td>{{ "%.0f"|format(point.meter_consumption_l) }} L</td>
+                    <td>
+                      {% if point.meter_consumption_l is none %}
+                        -
+                      {% else %}
+                        {{ "%.0f"|format(point.meter_consumption_l) }} L
+                      {% endif %}
+                    </td>
                   </tr>
                 {% endfor %}
               </tbody>

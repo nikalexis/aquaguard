@@ -6,6 +6,7 @@ from aquaguard_stats.models import (
     ZoneLiveState,
     build_dashboard_summary,
     build_zone_dashboard_state,
+    snapshots_to_calendar_daily_points,
     snapshots_to_daily_points,
 )
 
@@ -67,3 +68,27 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(points[1].daily_consumption_l, 15)
         self.assertIs(points[1].partial, False)
         self.assertEqual(points[2].daily_consumption_l, 5)
+
+    def test_calendar_daily_points_show_missing_days_as_gaps(self):
+        snapshots = [
+            ZoneDailySnapshot(date(2026, 5, 1), datetime(2026, 5, 1, 12), 1, "One", 100, 0, 100, 200, True),
+            ZoneDailySnapshot(date(2026, 5, 3), datetime(2026, 5, 3, 12), 1, "One", 145, 0, 145, 200, True),
+            ZoneDailySnapshot(date(2026, 5, 4), datetime(2026, 5, 4, 12), 1, "One", 160, 0, 160, 200, True),
+        ]
+
+        points = snapshots_to_calendar_daily_points(
+            snapshots,
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 5, 4),
+        )
+
+        self.assertEqual([point.snapshot_date for point in points], [
+            date(2026, 5, 1),
+            date(2026, 5, 2),
+            date(2026, 5, 3),
+            date(2026, 5, 4),
+        ])
+        self.assertIs(points[1].missing, True)
+        self.assertIs(points[2].partial, True)
+        self.assertIsNone(points[2].daily_consumption_l)
+        self.assertEqual(points[3].daily_consumption_l, 15)

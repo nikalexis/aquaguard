@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from datetime import date, datetime
 from pathlib import Path
 
-from .models import ZoneDailySnapshot
+from .models import AvailableMonth, ZoneDailySnapshot
 
 
 class SnapshotRepository:
@@ -115,6 +115,44 @@ class SnapshotRepository:
             for row in reversed(rows)
         ]
 
+    def list_zone_snapshots_between(
+        self,
+        zone_id: int,
+        start_date: date,
+        end_date: date,
+    ) -> list[ZoneDailySnapshot]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT *
+                FROM zone_daily_snapshots
+                WHERE zone_id = ?
+                  AND snapshot_date >= ?
+                  AND snapshot_date <= ?
+                ORDER BY snapshot_date ASC
+                """,
+                (zone_id, start_date.isoformat(), end_date.isoformat()),
+            ).fetchall()
+        return [self._row_to_snapshot(row) for row in rows]
+
+    def list_available_months(self, zone_id: int) -> list[AvailableMonth]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT DISTINCT
+                  CAST(strftime('%Y', snapshot_date) AS INTEGER) AS year,
+                  CAST(strftime('%m', snapshot_date) AS INTEGER) AS month
+                FROM zone_daily_snapshots
+                WHERE zone_id = ?
+                ORDER BY year DESC, month DESC
+                """,
+                (zone_id,),
+            ).fetchall()
+        return [
+            AvailableMonth(year=int(row["year"]), month=int(row["month"]))
+            for row in rows
+        ]
+
     def list_latest_snapshots(self) -> list[ZoneDailySnapshot]:
         with self.connect() as connection:
             rows = connection.execute(
@@ -146,4 +184,3 @@ class SnapshotRepository:
             period_limit_l=float(row["period_limit_l"]),
             period_limit_active=bool(row["period_limit_active"]),
         )
-

@@ -44,3 +44,30 @@ class SnapshotRepositoryTests(unittest.TestCase):
             self.assertEqual(len(snapshots), 1)
             self.assertEqual(snapshots[0].zone_name, "Kitchen")
             self.assertEqual(snapshots[0].meter_consumption_l, 105)
+
+    def test_list_zone_snapshots_between_and_available_months(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repository = SnapshotRepository(Path(temp_dir) / "stats.sqlite3")
+            repository.init_schema()
+            snapshots = [
+                ZoneDailySnapshot(date(2026, 4, 30), datetime(2026, 4, 30, 12), 1, "Zone 1", 90, 0, 90, 200, True),
+                ZoneDailySnapshot(date(2026, 5, 1), datetime(2026, 5, 1, 12), 1, "Zone 1", 100, 0, 100, 200, True),
+                ZoneDailySnapshot(date(2026, 5, 3), datetime(2026, 5, 3, 12), 1, "Zone 1", 125, 0, 125, 200, True),
+            ]
+            repository.upsert_snapshots(snapshots)
+
+            ranged = repository.list_zone_snapshots_between(
+                zone_id=1,
+                start_date=date(2026, 5, 1),
+                end_date=date(2026, 5, 31),
+            )
+            months = repository.list_available_months(zone_id=1)
+
+            self.assertEqual([snapshot.snapshot_date for snapshot in ranged], [
+                date(2026, 5, 1),
+                date(2026, 5, 3),
+            ])
+            self.assertEqual([(month.year, month.month) for month in months], [
+                (2026, 5),
+                (2026, 4),
+            ])

@@ -334,6 +334,75 @@ h2 {
   padding: 18px;
 }
 
+.history-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.range-toggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px;
+  background: rgb(251 252 250 / 80%);
+}
+
+.range-toggle label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.range-toggle label.active {
+  background: var(--water);
+  color: #fff;
+}
+
+.range-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.monthly-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.monthly-controls.is-hidden {
+  display: none;
+}
+
+.monthly-controls label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.monthly-controls select {
+  min-width: 120px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+}
+
 .chart {
   display: flex;
   align-items: end;
@@ -370,6 +439,12 @@ h2 {
     #d8e0dc 6px,
     #d8e0dc 12px
   );
+}
+
+.bar.missing {
+  min-height: 0;
+  border: 1px dashed #a6b4af;
+  background: transparent;
 }
 
 .bar-wrap span {
@@ -422,6 +497,22 @@ h2 {
   .summary-grid,
   .zone-row {
     grid-template-columns: 1fr;
+  }
+
+  .history-controls,
+  .monthly-controls {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .range-toggle {
+    width: 100%;
+  }
+
+  .monthly-controls label,
+  .monthly-controls select {
+    width: 100%;
   }
 
   .zone-progress {

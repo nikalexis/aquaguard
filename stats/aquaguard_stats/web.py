@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -61,7 +61,13 @@ def create_app() -> FastAPI:
         )
 
     @app.get("/zones/{zone_id}", response_class=HTMLResponse)
-    async def zone_detail(request: Request, zone_id: int):
+    async def zone_detail(
+        request: Request,
+        zone_id: int,
+        range: str | None = Query(default=None),
+        year: int | None = Query(default=None),
+        month: int | None = Query(default=None),
+    ):
         if zone_id < 1 or zone_id > ZONE_COUNT:
             raise HTTPException(status_code=404, detail="Zone not found")
         summary = await service.get_dashboard_summary()
@@ -69,7 +75,16 @@ def create_app() -> FastAPI:
             (candidate for candidate in summary.zones if candidate.live.zone_id == zone_id),
             None,
         )
-        points = service.get_zone_daily_points(zone_id=zone_id)
+        history_range = service.resolve_history_range(
+            zone_id=zone_id,
+            range_mode=range,
+            year=year,
+            month=month,
+        )
+        points = service.get_zone_daily_points_for_range(
+            zone_id=zone_id,
+            history_range=history_range,
+        )
         return templates.TemplateResponse(
             request,
             "zone.html",
@@ -78,11 +93,27 @@ def create_app() -> FastAPI:
                 "zone": zone,
                 "zone_id": zone_id,
                 "points": points,
+                "history_range": history_range,
+                "month_names": [
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December",
+                ],
                 "chart_points": [
                     {
                         "date": point.snapshot_date.isoformat(),
                         "value": point.daily_consumption_l,
                         "partial": point.partial,
+                        "missing": point.missing,
                     }
                     for point in points
                 ],
@@ -94,10 +125,24 @@ def create_app() -> FastAPI:
         return await service.get_dashboard_summary()
 
     @app.get("/api/zones/{zone_id}/daily")
-    async def api_zone_daily(zone_id: int):
+    async def api_zone_daily(
+        zone_id: int,
+        range: str | None = Query(default=None),
+        year: int | None = Query(default=None),
+        month: int | None = Query(default=None),
+    ):
         if zone_id < 1 or zone_id > ZONE_COUNT:
             raise HTTPException(status_code=404, detail="Zone not found")
-        return service.get_zone_daily_points(zone_id=zone_id)
+        history_range = service.resolve_history_range(
+            zone_id=zone_id,
+            range_mode=range,
+            year=year,
+            month=month,
+        )
+        return service.get_zone_daily_points_for_range(
+            zone_id=zone_id,
+            history_range=history_range,
+        )
 
     @app.post("/api/snapshots/noon")
     async def api_record_snapshot():
