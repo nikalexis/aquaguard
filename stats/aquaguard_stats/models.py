@@ -23,6 +23,14 @@ class ZoneLiveState:
 
 
 @dataclass(frozen=True)
+class ZoneDashboardState:
+    live: ZoneLiveState
+    utilization_percent: float | None
+    status_level: str
+    status_label: str
+
+
+@dataclass(frozen=True)
 class ZoneDailySnapshot:
     snapshot_date: date
     snapshot_at: datetime
@@ -46,7 +54,7 @@ class DailyConsumptionPoint:
 
 @dataclass(frozen=True)
 class DashboardSummary:
-    zones: list[ZoneLiveState]
+    zones: list[ZoneDashboardState]
     total_period_consumption_l: float
     total_active_period_limit_l: float
     utilization_percent: float | None
@@ -79,14 +87,54 @@ def build_dashboard_summary(
     if error:
         status_level = "offline"
 
+    zone_states = [
+        build_zone_dashboard_state(zone, warning_threshold)
+        for zone in zones
+    ]
+
     return DashboardSummary(
-        zones=zones,
+        zones=zone_states,
         total_period_consumption_l=total_consumption,
         total_active_period_limit_l=total_limit,
         utilization_percent=utilization_percent,
         status_level=status_level,
         live_available=error is None,
         error=error,
+    )
+
+
+def build_zone_dashboard_state(
+    zone: ZoneLiveState,
+    warning_threshold: float,
+) -> ZoneDashboardState:
+    utilization_percent: float | None = None
+    status_level = "ok"
+    status_label = "Ok"
+
+    if zone.period_limit_active and zone.period_limit_l > 0:
+        utilization_percent = min(
+            (zone.period_consumption_l / zone.period_limit_l) * 100,
+            999.0,
+        )
+        if utilization_percent >= 100:
+            status_level = "alert"
+            status_label = "Limit reached"
+        elif utilization_percent >= warning_threshold * 100:
+            status_level = "warning"
+            status_label = "Near limit"
+    else:
+        status_level = "inactive"
+        status_label = "No active limit"
+
+    if zone.effective_stop:
+        status_level = "alert"
+        status_label = "Stopped"
+
+    return ZoneDashboardState(
+        live=zone,
+        utilization_percent=utilization_percent,
+        status_level=status_level,
+        status_label=status_label,
     )
 
 
@@ -117,4 +165,3 @@ def snapshots_to_daily_points(
         previous = snapshot
 
     return points
-

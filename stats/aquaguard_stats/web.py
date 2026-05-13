@@ -66,7 +66,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Zone not found")
         summary = await service.get_dashboard_summary()
         zone = next(
-            (candidate for candidate in summary.zones if candidate.zone_id == zone_id),
+            (candidate for candidate in summary.zones if candidate.live.zone_id == zone_id),
             None,
         )
         points = service.get_zone_daily_points(zone_id=zone_id)

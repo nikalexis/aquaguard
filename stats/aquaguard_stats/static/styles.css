@@ -103,6 +103,10 @@ h2 {
   color: var(--offline);
 }
 
+.status-inactive {
+  color: var(--offline);
+}
+
 .notice,
 .progress-panel,
 .chart-panel {
@@ -198,6 +202,10 @@ h2 {
   background: var(--offline);
 }
 
+.progress-inactive {
+  background: #aab7b2;
+}
+
 .zone-list {
   display: grid;
   gap: 10px;
@@ -205,7 +213,7 @@ h2 {
 
 .zone-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 260px) auto auto;
   align-items: center;
   gap: 18px;
   border: 1px solid var(--line);
@@ -231,6 +239,28 @@ h2 {
 .zone-values {
   min-width: 140px;
   text-align: right;
+}
+
+.zone-progress {
+  min-width: 180px;
+}
+
+.zone-progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.zone-progress-label strong {
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+
+.progress-track.compact {
+  height: 9px;
+  margin-top: 7px;
 }
 
 .zone-state {
@@ -341,6 +371,11 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .zone-progress {
+    min-width: 0;
+    width: 100%;
+  }
+
   .zone-values {
     min-width: 0;
     text-align: left;
@@ -358,4 +393,3 @@ h2 {
     flex: 0 0 34px;
   }
 }
-

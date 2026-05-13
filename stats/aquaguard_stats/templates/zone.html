@@ -12,11 +12,11 @@
         <div>
           <a class="back-link" href="/">Back to dashboard</a>
           <p class="eyebrow">Zone {{ zone_id }}</p>
-          <h1>{{ zone.zone_name if zone else "Zone " ~ zone_id }}</h1>
+          <h1>{{ zone.live.zone_name if zone else "Zone " ~ zone_id }}</h1>
         </div>
         {% if zone %}
-          <div class="status {{ 'status-alert' if zone.effective_stop else 'status-ok' }}">
-            {{ "Stopped" if zone.effective_stop else "Allowed" }}
+          <div class="status status-{{ zone.status_level }}">
+            {{ zone.status_label }}
           </div>
         {% endif %}
       </header>
@@ -32,21 +32,46 @@
         <section class="summary-grid">
           <div class="metric">
             <span>Period use</span>
-            <strong>{{ "%.0f"|format(zone.period_consumption_l) }} L</strong>
+            <strong>{{ "%.0f"|format(zone.live.period_consumption_l) }} L</strong>
           </div>
           <div class="metric">
-            <span>Meter total</span>
-            <strong>{{ "%.0f"|format(zone.meter_consumption_l) }} L</strong>
+            <span>Period limit</span>
+            <strong>
+              {% if zone.live.period_limit_active and zone.live.period_limit_l > 0 %}
+                {{ "%.0f"|format(zone.live.period_limit_l) }} L
+              {% else %}
+                Not set
+              {% endif %}
+            </strong>
           </div>
           <div class="metric">
             <span>Flow rate</span>
             <strong>
-              {% if zone.flow_rate_l_min is not none %}
-                {{ "%.2f"|format(zone.flow_rate_l_min) }} L/min
+              {% if zone.live.flow_rate_l_min is not none %}
+                {{ "%.2f"|format(zone.live.flow_rate_l_min) }} L/min
               {% else %}
                 -
               {% endif %}
             </strong>
+          </div>
+        </section>
+
+        <section class="progress-panel">
+          <div class="progress-label">
+            <span>Zone period utilization</span>
+            <strong>
+              {% if zone.utilization_percent is not none %}
+                {{ "%.1f"|format(zone.utilization_percent) }}%
+              {% else %}
+                No active limit
+              {% endif %}
+            </strong>
+          </div>
+          <div class="progress-track">
+            <div
+              class="progress-fill progress-{{ zone.status_level }}"
+              style="width: {{ [zone.utilization_percent or 0, 100] | min }}%"
+            ></div>
           </div>
         </section>
       {% endif %}
@@ -102,4 +127,3 @@
     </main>
   </body>
 </html>
-

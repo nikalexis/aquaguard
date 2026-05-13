@@ -66,9 +66,10 @@
       </section>
 
       <section class="zone-list" aria-label="Zones">
-        {% for zone in summary.zones %}
+        {% for zone_state in summary.zones %}
+          {% set zone = zone_state.live %}
           <a class="zone-row" href="/zones/{{ zone.zone_id }}">
-            <div>
+            <div class="zone-title">
               <span class="zone-index">Zone {{ zone.zone_id }}</span>
               <strong>{{ zone.zone_name }}</strong>
             </div>
@@ -83,10 +84,27 @@
             <div class="zone-state {{ 'closed' if zone.effective_stop else 'open' }}">
               {{ "Stopped" if zone.effective_stop else "Allowed" }}
             </div>
+            <div class="zone-progress">
+              <div class="zone-progress-label">
+                <span>{{ zone_state.status_label }}</span>
+                <strong>
+                  {% if zone_state.utilization_percent is not none %}
+                    {{ "%.1f"|format(zone_state.utilization_percent) }}%
+                  {% else %}
+                    -
+                  {% endif %}
+                </strong>
+              </div>
+              <div class="progress-track compact">
+                <div
+                  class="progress-fill progress-{{ zone_state.status_level }}"
+                  style="width: {{ [zone_state.utilization_percent or 0, 100] | min }}%"
+                ></div>
+              </div>
+            </div>
           </a>
         {% endfor %}
       </section>
     </main>
   </body>
 </html>
-

@@ -5,6 +5,7 @@ from aquaguard_stats.models import (
     ZoneDailySnapshot,
     ZoneLiveState,
     build_dashboard_summary,
+    build_zone_dashboard_state,
     snapshots_to_daily_points,
 )
 
@@ -34,6 +35,22 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(summary.total_active_period_limit_l, 0)
         self.assertIsNone(summary.utilization_percent)
         self.assertEqual(summary.status_level, "ok")
+
+    def test_zone_dashboard_state_reports_zone_limit_status(self):
+        warning_zone = ZoneLiveState(1, "One", 85, 0, 85, 100, True, False, True, None, None)
+        alert_zone = ZoneLiveState(2, "Two", 120, 0, 120, 100, True, False, True, None, None)
+        inactive_zone = ZoneLiveState(3, "Three", 50, 0, 50, 100, False, False, True, None, None)
+
+        warning = build_zone_dashboard_state(warning_zone, warning_threshold=0.8)
+        alert = build_zone_dashboard_state(alert_zone, warning_threshold=0.8)
+        inactive = build_zone_dashboard_state(inactive_zone, warning_threshold=0.8)
+
+        self.assertEqual(warning.status_level, "warning")
+        self.assertEqual(warning.utilization_percent, 85)
+        self.assertEqual(alert.status_level, "alert")
+        self.assertEqual(alert.utilization_percent, 120)
+        self.assertEqual(inactive.status_level, "inactive")
+        self.assertIsNone(inactive.utilization_percent)
 
 
     def test_daily_points_compute_meter_deltas_and_mark_first_partial(self):
