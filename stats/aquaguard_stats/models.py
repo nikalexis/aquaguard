@@ -67,6 +67,10 @@ class HistoryRange:
     selected_year: int
     selected_month: int
     available_months: list[AvailableMonth]
+    current_year: int
+    current_month: int
+    first_year: int
+    first_month: int
 
     @property
     def is_monthly(self) -> bool:
@@ -77,6 +81,22 @@ class HistoryRange:
         if self.is_monthly:
             return self.start_date.strftime("%B %Y")
         return "Last 30 days"
+
+    @property
+    def previous_month(self) -> AvailableMonth | None:
+        if self.selected_year == self.first_year and self.selected_month == self.first_month:
+            return None
+        if self.selected_month == 1:
+            return AvailableMonth(year=self.selected_year - 1, month=12)
+        return AvailableMonth(year=self.selected_year, month=self.selected_month - 1)
+
+    @property
+    def next_month(self) -> AvailableMonth | None:
+        if self.selected_year == self.current_year and self.selected_month == self.current_month:
+            return None
+        if self.selected_month == 12:
+            return AvailableMonth(year=self.selected_year + 1, month=1)
+        return AvailableMonth(year=self.selected_year, month=self.selected_month + 1)
 
 
 @dataclass(frozen=True)
@@ -115,7 +135,11 @@ def build_dashboard_summary(
         status_level = "offline"
 
     zone_states = [
-        build_zone_dashboard_state(zone, warning_threshold)
+        build_zone_dashboard_state(
+            zone,
+            warning_threshold,
+            live_available=error is None,
+        )
         for zone in zones
     ]
 
@@ -133,6 +157,7 @@ def build_dashboard_summary(
 def build_zone_dashboard_state(
     zone: ZoneLiveState,
     warning_threshold: float,
+    live_available: bool = True,
 ) -> ZoneDashboardState:
     utilization_percent: float | None = None
     status_level = "ok"
@@ -156,6 +181,10 @@ def build_zone_dashboard_state(
     if zone.effective_stop:
         status_level = "alert"
         status_label = "Stopped"
+
+    if not live_available:
+        status_level = "offline"
+        status_label = "Unknown"
 
     return ZoneDashboardState(
         live=zone,

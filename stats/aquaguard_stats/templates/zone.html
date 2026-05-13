@@ -166,6 +166,18 @@
           </div>
 
           <div class="monthly-controls {{ '' if history_range.is_monthly else 'is-hidden' }}">
+            {% if history_range.previous_month %}
+              <a
+                class="month-nav-button"
+                href="/zones/{{ zone_id }}?range=monthly&year={{ history_range.previous_month.year }}&month={{ history_range.previous_month.month }}"
+                aria-label="Previous month"
+                title="Previous month"
+              >
+                &larr;
+              </a>
+            {% else %}
+              <span class="month-nav-button disabled" aria-label="Previous month unavailable" title="Previous month unavailable">&larr;</span>
+            {% endif %}
             <label>
               <span>Year</span>
               <select name="year" onchange="this.form.range.value='monthly'; this.form.submit()">
@@ -186,15 +198,32 @@
               <select name="month" onchange="this.form.range.value='monthly'; this.form.submit()">
                 {% for month_name in month_names %}
                   {% set month_number = loop.index %}
-                  <option
-                    value="{{ month_number }}"
-                    {% if month_number == history_range.selected_month %}selected{% endif %}
-                  >
-                    {{ month_name }}
-                  </option>
+                  {% if
+                    (history_range.selected_year > history_range.first_year or month_number >= history_range.first_month)
+                    and (history_range.selected_year < history_range.current_year or month_number <= history_range.current_month)
+                  %}
+                    <option
+                      value="{{ month_number }}"
+                      {% if month_number == history_range.selected_month %}selected{% endif %}
+                    >
+                      {{ month_name }}
+                    </option>
+                  {% endif %}
                 {% endfor %}
               </select>
             </label>
+            {% if history_range.next_month %}
+              <a
+                class="month-nav-button"
+                href="/zones/{{ zone_id }}?range=monthly&year={{ history_range.next_month.year }}&month={{ history_range.next_month.month }}"
+                aria-label="Next month"
+                title="Next month"
+              >
+                &rarr;
+              </a>
+            {% else %}
+              <span class="month-nav-button disabled" aria-label="Next month unavailable" title="Next month unavailable">&rarr;</span>
+            {% endif %}
           </div>
         </form>
 

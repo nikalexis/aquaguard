@@ -141,8 +141,12 @@
                 <span class="zone-index">Zone {{ zone.zone_id }}</span>
                 <strong>{{ zone.zone_name }}</strong>
               </div>
-              <div class="zone-state {{ 'closed' if zone.effective_stop else 'open' }}">
-                {{ "Stopped" if zone.effective_stop else "Allowed" }}
+              <div class="zone-state {{ 'unknown' if not summary.live_available else 'closed' if zone.effective_stop else 'open' }}">
+                {% if not summary.live_available %}
+                  Unknown
+                {% else %}
+                  {{ "Stopped" if zone.effective_stop else "Allowed" }}
+                {% endif %}
               </div>
               <div class="zone-values">
                 <span>{{ "%.0f"|format(zone.period_consumption_l) }} L</span>

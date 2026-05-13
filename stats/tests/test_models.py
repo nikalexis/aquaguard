@@ -53,6 +53,21 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(inactive.status_level, "inactive")
         self.assertIsNone(inactive.utilization_percent)
 
+    def test_dashboard_summary_marks_zone_status_unknown_when_offline(self):
+        zones = [
+            ZoneLiveState(1, "One", 85, 0, 85, 100, True, False, True, None, None),
+        ]
+
+        summary = build_dashboard_summary(
+            zones,
+            warning_threshold=0.8,
+            error="connection failed",
+        )
+
+        self.assertEqual(summary.status_level, "offline")
+        self.assertEqual(summary.zones[0].status_level, "offline")
+        self.assertEqual(summary.zones[0].status_label, "Unknown")
+
 
     def test_daily_points_compute_meter_deltas_and_mark_first_partial(self):
         snapshots = [
