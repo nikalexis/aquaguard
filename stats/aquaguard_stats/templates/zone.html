@@ -29,100 +29,154 @@
       {% endif %}
 
       {% if zone %}
-        <section class="summary-grid">
-          <div class="metric">
-            <span>Period use</span>
-            <strong>{{ "%.0f"|format(zone.live.period_consumption_l) }} L</strong>
+        <section class="dashboard-section" aria-labelledby="zone-period-heading">
+          <div class="section-heading">
+            <div class="section-title">
+              <span class="icon-badge" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3.5c2.8 3.1 5.5 6.6 5.5 10.1a5.5 5.5 0 0 1-11 0C6.5 10.1 9.2 6.6 12 3.5Z"/>
+                  <path d="M9.4 14.1c.4 1.2 1.3 2 2.6 2"/>
+                </svg>
+              </span>
+              <div>
+                <p class="eyebrow">Current period</p>
+                <h2 id="zone-period-heading">Zone period usage</h2>
+              </div>
+            </div>
+            <span>{{ zone.status_label }}</span>
           </div>
-          <div class="metric">
-            <span>Period limit</span>
-            <strong>
-              {% if zone.live.period_limit_active and zone.live.period_limit_l > 0 %}
-                {{ "%.0f"|format(zone.live.period_limit_l) }} L
-              {% else %}
-                Not set
-              {% endif %}
-            </strong>
-          </div>
-          <div class="metric">
-            <span>Flow rate</span>
-            <strong>
-              {% if zone.live.flow_rate_l_min is not none %}
-                {{ "%.2f"|format(zone.live.flow_rate_l_min) }} L/min
-              {% else %}
-                -
-              {% endif %}
-            </strong>
-          </div>
-        </section>
 
-        <section class="progress-panel">
-          <div class="progress-label">
-            <span>Zone period utilization</span>
-            <strong>
-              {% if zone.utilization_percent is not none %}
-                {{ "%.1f"|format(zone.utilization_percent) }}%
-              {% else %}
-                No active limit
-              {% endif %}
-            </strong>
+          <div class="summary-grid">
+            <div class="metric">
+              <span>
+                <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 19h16"/>
+                  <path d="M7 16V9"/>
+                  <path d="M12 16V5"/>
+                  <path d="M17 16v-4"/>
+                </svg>
+                Period use
+              </span>
+              <strong>{{ "%.0f"|format(zone.live.period_consumption_l) }} L</strong>
+            </div>
+            <div class="metric">
+              <span>
+                <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 4v16"/>
+                  <path d="M5 12h14"/>
+                  <path d="M7 7h10v10H7z"/>
+                </svg>
+                Period limit
+              </span>
+              <strong>
+                {% if zone.live.period_limit_active and zone.live.period_limit_l > 0 %}
+                  {{ "%.0f"|format(zone.live.period_limit_l) }} L
+                {% else %}
+                  Not set
+                {% endif %}
+              </strong>
+            </div>
+            <div class="metric">
+              <span>
+                <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12h3l2-5 4 10 2-5h5"/>
+                </svg>
+                Flow rate
+              </span>
+              <strong>
+                {% if zone.live.flow_rate_l_min is not none %}
+                  {{ "%.2f"|format(zone.live.flow_rate_l_min) }} L/min
+                {% else %}
+                  -
+                {% endif %}
+              </strong>
+            </div>
           </div>
-          <div class="progress-track">
-            <div
-              class="progress-fill progress-{{ zone.status_level }}"
-              style="width: {{ [zone.utilization_percent or 0, 100] | min }}%"
-            ></div>
+
+          <div class="progress-panel">
+            <div class="progress-label">
+              <span>Zone period utilization</span>
+              <strong>
+                {% if zone.utilization_percent is not none %}
+                  {{ "%.1f"|format(zone.utilization_percent) }}%
+                {% else %}
+                  No active limit
+                {% endif %}
+              </strong>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill progress-{{ zone.status_level }}"
+                style="width: {{ [zone.utilization_percent or 0, 100] | min }}%"
+              ></div>
+            </div>
           </div>
         </section>
       {% endif %}
 
-      <section class="chart-panel">
+      <section class="dashboard-section" aria-labelledby="daily-consumption-heading">
         <div class="section-heading">
-          <h2>Daily consumption</h2>
+          <div class="section-title">
+            <span class="icon-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 19h16"/>
+                <path d="M7 16V9"/>
+                <path d="M12 16V5"/>
+                <path d="M17 16v-7"/>
+              </svg>
+            </span>
+            <div>
+              <p class="eyebrow">History</p>
+              <h2 id="daily-consumption-heading">Daily consumption</h2>
+            </div>
+          </div>
           <span>{{ points | length }} snapshots</span>
         </div>
-        {% if points %}
-          <div class="chart" role="img" aria-label="Daily water consumption chart">
-            {% set max_value = ([1] + points | map(attribute='daily_consumption_l') | reject('none') | list) | max %}
-            {% for point in points %}
-              {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
-              <div class="bar-wrap">
-                <div
-                  class="bar {{ 'partial' if point.partial else '' }}"
-                  style="height: {{ [height, 100] | min }}%"
-                  title="{{ point.snapshot_date.isoformat() }}: {{ point.daily_consumption_l if point.daily_consumption_l is not none else 'partial' }} L"
-                ></div>
-                <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
-              </div>
-            {% endfor %}
-          </div>
-          <table class="history-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Daily use</th>
-                <th>Meter total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for point in points | reverse %}
-                <tr>
-                  <td>{{ point.snapshot_date.isoformat() }}</td>
-                  <td>
-                    {% if point.daily_consumption_l is none %}
-                      Partial
-                    {% else %}
-                      {{ "%.0f"|format(point.daily_consumption_l) }} L
-                    {% endif %}
-                  </td>
-                  <td>{{ "%.0f"|format(point.meter_consumption_l) }} L</td>
-                </tr>
+
+        <div class="chart-panel">
+          {% if points %}
+            <div class="chart" role="img" aria-label="Daily water consumption chart">
+              {% set max_value = ([1] + points | map(attribute='daily_consumption_l') | reject('none') | list) | max %}
+              {% for point in points %}
+                {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
+                <div class="bar-wrap">
+                  <div
+                    class="bar {{ 'partial' if point.partial else '' }}"
+                    style="height: {{ [height, 100] | min }}%"
+                    title="{{ point.snapshot_date.isoformat() }}: {{ point.daily_consumption_l if point.daily_consumption_l is not none else 'partial' }} L"
+                  ></div>
+                  <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
+                </div>
               {% endfor %}
-            </tbody>
-          </table>
-        {% else %}
-          <div class="empty-state">No daily snapshots stored yet.</div>
-        {% endif %}
+            </div>
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Daily use</th>
+                  <th>Meter total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for point in points | reverse %}
+                  <tr>
+                    <td>{{ point.snapshot_date.isoformat() }}</td>
+                    <td>
+                      {% if point.daily_consumption_l is none %}
+                        Partial
+                      {% else %}
+                        {{ "%.0f"|format(point.daily_consumption_l) }} L
+                      {% endif %}
+                    </td>
+                    <td>{{ "%.0f"|format(point.meter_consumption_l) }} L</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="empty-state">No daily snapshots stored yet.</div>
+          {% endif %}
+        </div>
       </section>
     </main>
   </body>

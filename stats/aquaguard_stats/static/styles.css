@@ -129,6 +129,47 @@ h2 {
   font-size: 0.9rem;
 }
 
+.dashboard-section {
+  margin-bottom: 28px;
+}
+
+.dashboard-section > .section-heading {
+  margin-bottom: 14px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title .eyebrow {
+  margin-bottom: 2px;
+}
+
+.icon-badge {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border: 1px solid rgb(22 125 143 / 24%);
+  border-radius: 8px;
+  background: rgb(22 125 143 / 10%);
+  color: var(--water-strong);
+}
+
+.icon-badge svg,
+.metric-icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -145,9 +186,17 @@ h2 {
 }
 
 .metric span {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.metric-icon {
+  width: 17px;
+  height: 17px;
+  color: var(--water-strong);
 }
 
 .metric strong {
@@ -364,6 +413,10 @@ h2 {
   .section-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .section-title {
+    align-items: flex-start;
   }
 
   .summary-grid,
