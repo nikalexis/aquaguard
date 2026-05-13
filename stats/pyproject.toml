@@ -1,0 +1,29 @@
+[project]
+name = "aquaguard-stats"
+version = "0.1.0"
+description = "AquaGuard stats dashboard and daily snapshot collector"
+requires-python = ">=3.12"
+dependencies = [
+  "aioesphomeapi>=27.0.0",
+  "fastapi>=0.115.0",
+  "jinja2>=3.1.0",
+  "uvicorn[standard]>=0.32.0",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.0.0",
+]
+
+[project.scripts]
+aquaguard-stats = "aquaguard_stats.web:main"
+
+[tool.setuptools.package-data]
+aquaguard_stats = [
+  "static/*.css",
+  "templates/*.html",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

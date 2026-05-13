@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Zone {{ zone_id }} - AquaGuard Stats</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <a class="back-link" href="/">Back to dashboard</a>
+          <p class="eyebrow">Zone {{ zone_id }}</p>
+          <h1>{{ zone.zone_name if zone else "Zone " ~ zone_id }}</h1>
+        </div>
+        {% if zone %}
+          <div class="status {{ 'status-alert' if zone.effective_stop else 'status-ok' }}">
+            {{ "Stopped" if zone.effective_stop else "Allowed" }}
+          </div>
+        {% endif %}
+      </header>
+
+      {% if summary.error %}
+        <section class="notice">
+          Live device data is unavailable. Showing stored history where available.
+          <span>{{ summary.error }}</span>
+        </section>
+      {% endif %}
+
+      {% if zone %}
+        <section class="summary-grid">
+          <div class="metric">
+            <span>Period use</span>
+            <strong>{{ "%.0f"|format(zone.period_consumption_l) }} L</strong>
+          </div>
+          <div class="metric">
+            <span>Meter total</span>
+            <strong>{{ "%.0f"|format(zone.meter_consumption_l) }} L</strong>
+          </div>
+          <div class="metric">
+            <span>Flow rate</span>
+            <strong>
+              {% if zone.flow_rate_l_min is not none %}
+                {{ "%.2f"|format(zone.flow_rate_l_min) }} L/min
+              {% else %}
+                -
+              {% endif %}
+            </strong>
+          </div>
+        </section>
+      {% endif %}
+
+      <section class="chart-panel">
+        <div class="section-heading">
+          <h2>Daily consumption</h2>
+          <span>{{ points | length }} snapshots</span>
+        </div>
+        {% if points %}
+          <div class="chart" role="img" aria-label="Daily water consumption chart">
+            {% set max_value = ([1] + points | map(attribute='daily_consumption_l') | reject('none') | list) | max %}
+            {% for point in points %}
+              {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
+              <div class="bar-wrap">
+                <div
+                  class="bar {{ 'partial' if point.partial else '' }}"
+                  style="height: {{ [height, 100] | min }}%"
+                  title="{{ point.snapshot_date.isoformat() }}: {{ point.daily_consumption_l if point.daily_consumption_l is not none else 'partial' }} L"
+                ></div>
+                <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
+              </div>
+            {% endfor %}
+          </div>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Daily use</th>
+                <th>Meter total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for point in points | reverse %}
+                <tr>
+                  <td>{{ point.snapshot_date.isoformat() }}</td>
+                  <td>
+                    {% if point.daily_consumption_l is none %}
+                      Partial
+                    {% else %}
+                      {{ "%.0f"|format(point.daily_consumption_l) }} L
+                    {% endif %}
+                  </td>
+                  <td>{{ "%.0f"|format(point.meter_consumption_l) }} L</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="empty-state">No daily snapshots stored yet.</div>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
+

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AquaGuard Stats</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">AquaGuard</p>
+          <h1>Water activity</h1>
+        </div>
+        <div class="status status-{{ summary.status_level }}">
+          {{ summary.status_level | title }}
+        </div>
+      </header>
+
+      {% if summary.error %}
+        <section class="notice">
+          Live device data is unavailable. Showing the latest stored snapshot.
+          <span>{{ summary.error }}</span>
+        </section>
+      {% endif %}
+
+      <section class="summary-grid">
+        <div class="metric">
+          <span>Total period use</span>
+          <strong>{{ "%.0f"|format(summary.total_period_consumption_l) }} L</strong>
+        </div>
+        <div class="metric">
+          <span>Active period limit</span>
+          <strong>
+            {% if summary.total_active_period_limit_l > 0 %}
+              {{ "%.0f"|format(summary.total_active_period_limit_l) }} L
+            {% else %}
+              Not set
+            {% endif %}
+          </strong>
+        </div>
+        <div class="metric">
+          <span>Warning threshold</span>
+          <strong>{{ warning_threshold }}%</strong>
+        </div>
+      </section>
+
+      <section class="progress-panel">
+        <div class="progress-label">
+          <span>Period utilization</span>
+          <strong>
+            {% if summary.utilization_percent is not none %}
+              {{ "%.1f"|format(summary.utilization_percent) }}%
+            {% else %}
+              No active limit
+            {% endif %}
+          </strong>
+        </div>
+        <div class="progress-track">
+          <div
+            class="progress-fill progress-{{ summary.status_level }}"
+            style="width: {{ [summary.utilization_percent or 0, 100] | min }}%"
+          ></div>
+        </div>
+      </section>
+
+      <section class="zone-list" aria-label="Zones">
+        {% for zone in summary.zones %}
+          <a class="zone-row" href="/zones/{{ zone.zone_id }}">
+            <div>
+              <span class="zone-index">Zone {{ zone.zone_id }}</span>
+              <strong>{{ zone.zone_name }}</strong>
+            </div>
+            <div class="zone-values">
+              <span>{{ "%.0f"|format(zone.period_consumption_l) }} L</span>
+              {% if zone.period_limit_active and zone.period_limit_l > 0 %}
+                <small>of {{ "%.0f"|format(zone.period_limit_l) }} L</small>
+              {% else %}
+                <small>No active limit</small>
+              {% endif %}
+            </div>
+            <div class="zone-state {{ 'closed' if zone.effective_stop else 'open' }}">
+              {{ "Stopped" if zone.effective_stop else "Allowed" }}
+            </div>
+          </a>
+        {% endfor %}
+      </section>
+    </main>
+  </body>
+</html>
+

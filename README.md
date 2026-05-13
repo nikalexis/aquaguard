@@ -4,6 +4,8 @@ ESPHome design for a Waveshare `ESP32-S3-ETH-8DI-8RO` used as an 8-zone water mo
 
 The first ESPHome YAML implementation lives under `esphome/`.
 
+The stats dashboard lives under `stats/`. It is a FastAPI app that reads the AquaGuard ESPHome native API directly, stores daily noon snapshots in SQLite, and displays period totals plus per-zone daily consumption charts.
+
 ## Scope
 
 - 8 reed-switch pulse inputs, `1 L/pulse`
@@ -168,6 +170,17 @@ Or with Docker:
 docker run --rm -v "$PWD":/config -w /config ghcr.io/esphome/esphome:2026.4.5 config esphome/aquaguard-main.yaml
 docker run --rm -v "$PWD":/config -w /config ghcr.io/esphome/esphome:2026.4.5 compile esphome/aquaguard-main.yaml
 ```
+
+## Stats Dashboard Usage
+
+Build and run the dashboard on a Docker host:
+
+```sh
+cd stats
+docker compose up --build
+```
+
+Set `AQUAGUARD_ESPHOME_HOST` and `AQUAGUARD_API_ENCRYPTION_KEY` in `stats/compose.yaml` or your Docker environment before deploying. The dashboard listens on `http://localhost:8080` and stores SQLite data under `stats/data/` by default.
 
 ## Next Review Focus
 
