@@ -117,16 +117,55 @@ h2 {
 }
 
 .notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 18px;
   padding: 14px 16px;
   color: var(--offline);
 }
 
+.notice-error {
+  border-color: rgb(185 60 50 / 38%);
+  background: rgb(185 60 50 / 10%);
+  color: var(--alert);
+}
+
+.notice-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.notice strong {
+  display: block;
+}
+
 .notice span {
   display: block;
   margin-top: 4px;
-  color: var(--muted);
+  color: currentColor;
   font-size: 0.9rem;
+}
+
+.notice-detail {
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border: 1px solid rgb(185 60 50 / 42%);
+  border-radius: 999px;
+  background: rgb(251 252 250 / 72%);
+  color: var(--alert);
+  cursor: help;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .dashboard-section {
