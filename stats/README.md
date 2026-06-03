@@ -28,14 +28,19 @@ Open `http://localhost:8080`.
 
 ## Docker
 
+Create a local `.env` file in `stats/` and keep it out of source control. The repo ignores `stats/.env`.
+
+```sh
+cp stats/.env.example stats/.env
+# then edit stats/.env with your real values
+```
+
 ```sh
 docker build -t aquaguard-stats ./stats
 docker run --rm \
   -p 8080:8080 \
   -v "$PWD/stats/data:/data" \
-  -e AQUAGUARD_ESPHOME_HOST=aquaguard.local \
-  -e AQUAGUARD_API_ENCRYPTION_KEY='your-api-key' \
-  -e AQUAGUARD_DB_PATH=/data/aquaguard-stats.sqlite3 \
+  --env-file stats/.env \
   aquaguard-stats
 ```
 
