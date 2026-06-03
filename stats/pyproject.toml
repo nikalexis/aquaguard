@@ -21,6 +21,7 @@ aquaguard-stats = "aquaguard_stats.web:main"
 [tool.setuptools.package-data]
 aquaguard_stats = [
   "static/*.css",
+  "static/*.svg",
   "templates/*.html",
 ]
 
