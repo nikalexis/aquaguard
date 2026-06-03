@@ -14,7 +14,7 @@ class ESPHomeMappingTests(unittest.TestCase):
             ],
             sensors=[
                 SimpleNamespace(key=4, name="Zone 1 Period Consumption", object_id="zone_1_period_consumption"),
-                SimpleNamespace(key=5, name="Zone 1 Flow Rate EMA 5m", object_id="zone_1_flow_rate_ema_5m"),
+                SimpleNamespace(key=5, name="Zone 1 Flow Rate 60s", object_id="zone_1_flow_rate_60s"),
             ],
             binary_sensors=[
                 SimpleNamespace(key=6, name="Zone 1 Effective Stop", object_id="zone_1_effective_stop"),
@@ -59,3 +59,23 @@ class ESPHomeMappingTests(unittest.TestCase):
         bindings = _build_entity_bindings(response)
 
         self.assertEqual(bindings[1].field, "period_consumption_l")
+
+    def test_build_entity_bindings_accepts_legacy_ema_flow_name(self):
+        response = SimpleNamespace(
+            numbers=[],
+            sensors=[
+                SimpleNamespace(
+                    key=1,
+                    name="Zone 1 Flow Rate EMA 5m",
+                    object_id="zone_1_flow_rate_ema_5m",
+                ),
+            ],
+            binary_sensors=[],
+            switches=[],
+            text_sensors=[],
+            text=[],
+        )
+
+        bindings = _build_entity_bindings(response)
+
+        self.assertEqual(bindings[1].field, "flow_rate_l_min")

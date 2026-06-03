@@ -31,6 +31,7 @@ FIELD_BY_SUFFIX = {
     "period_limit_active": "period_limit_active",
     "effective_stop": "effective_stop",
     "water_allowed": "water_allowed",
+    "flow_rate_60s": "flow_rate_l_min",
     "flow_rate_ema_5m": "flow_rate_l_min",
     "last_pulse_timestamp": "last_pulse_timestamp",
 }
@@ -100,6 +101,7 @@ async def _collect_state_values(
             "period_limit_active",
             "effective_stop",
             "water_allowed",
+            "flow_rate_l_min",
         }
     }
     seen: set[int] = set()

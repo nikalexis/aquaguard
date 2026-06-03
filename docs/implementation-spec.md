@@ -58,7 +58,7 @@ packages:
 - `zone_N_admin_stop`
 - `zone_N_effective_stop`
 - `zone_N_water_allowed`
-- `zone_N_flow_rate_ema_5m`
+- `zone_N_flow_rate_60s`
 - `zone_N_last_pulse_age`
 - `zone_N_last_pulse_timestamp`
 
@@ -137,7 +137,7 @@ Healthy means:
 - read-only `Period Limit Stop`
 - read-only `Effective Stop`
 - read-only `Water Allowed`
-- read-only `Flow Rate EMA 5m`
+- read-only `Flow Rate 60s`
 - read-only `Last Pulse Age`
 - read-only `Last Pulse Timestamp`
 
@@ -220,10 +220,10 @@ Final relay logic:
 
 ## Flow Rate
 
-- use an internal raw rate sensor from the pulse input
-- expose only `Flow Rate EMA 5m`
+- use the accepted debounced `1 L` pulses from the meter counter
+- expose `Flow Rate 60s`
 - unit: `L/min`
-- EMA tuned to approximate 5 minutes
+- count accepted `1 L` pulses over six 10-second buckets
 
 ## Time and Pulse History
 
@@ -288,4 +288,4 @@ Boot restore order:
 - persisted meter consumption, period baseline, period limit, and control state
 - period-alignment controls and current period year
 - public per-zone flow, pulse-history, and stop-state diagnostics
-- raw flow sensor kept internal
+- flow rate computed from internal 10-second pulse buckets

@@ -116,8 +116,8 @@ Healthy means:
 
 Per zone:
 
-- public read-only `Flow Rate EMA 5m` in `L/min`
-- internal raw pulse-rate sensor only for implementation
+- public read-only `Flow Rate 60s` in `L/min`
+- computed internally from accepted debounced pulse counts
 
 Because `1 pulse = 1 L`, pulse rate in pulses/min maps directly to `L/min`.
 
@@ -140,7 +140,7 @@ Read-only per zone:
 - `Period Limit Stop`
 - `Effective Stop`
 - `Water Allowed`
-- `Flow Rate EMA 5m`
+- `Flow Rate 60s`
 - `Last Pulse Age`
 - `Last Pulse Timestamp`
 

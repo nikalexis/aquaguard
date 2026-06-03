@@ -111,11 +111,11 @@ Read-only:
 - `Period Limit Stop`
 - `Effective Stop`
 - `Water Allowed`
-- `Flow Rate EMA 5m`
+- `Flow Rate 60s`
 - `Last Pulse Age`
 - `Last Pulse Timestamp`
 
-`Flow Rate EMA 5m` is public. The raw flow-rate source remains internal.
+`Flow Rate 60s` is public and reports accepted pulses over the last minute as `L/min`.
 
 `Zone Name` is for operator-facing labels only. ESPHome entity IDs remain stable and zone-based.
 
