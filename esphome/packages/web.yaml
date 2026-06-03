@@ -2,6 +2,9 @@ web_server:
   port: 80
   version: 3
   include_internal: false
+  auth:
+    username: admin
+    password: !secret web_server_password
   sorting_groups:
     - id: zone_1_group
       name: "Zone 1"
