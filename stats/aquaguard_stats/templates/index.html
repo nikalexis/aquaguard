@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AquaGuard Stats</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">AquaGuard</p>
+          <h1>Water activity</h1>
+        </div>
+        <div class="status status-{{ summary.status_level }}">
+          {{ summary.status_level | title }}
+        </div>
+      </header>
+
+      {% if summary.error %}
+        <section class="notice notice-error">
+          <svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 8v5"/>
+            <path d="M12 17h.01"/>
+            <path d="M10.2 4.6 2.8 18a2 2 0 0 0 1.8 3h14.8a2 2 0 0 0 1.8-3L13.8 4.6a2 2 0 0 0-3.6 0Z"/>
+          </svg>
+          <div>
+            <strong>AquaGuard is offline.</strong>
+            <span>Showing the latest stored snapshot.</span>
+          </div>
+          <button class="notice-detail" type="button" title="{{ summary.error }}" aria-label="Show technical error details">i</button>
+        </section>
+      {% endif %}
+
+      <section class="dashboard-section" aria-labelledby="total-period-heading">
+        <div class="section-heading">
+          <div class="section-title">
+            <span class="icon-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3.5c2.8 3.1 5.5 6.6 5.5 10.1a5.5 5.5 0 0 1-11 0C6.5 10.1 9.2 6.6 12 3.5Z"/>
+                <path d="M9.4 14.1c.4 1.2 1.3 2 2.6 2"/>
+              </svg>
+            </span>
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2 id="total-period-heading">Total period usage</h2>
+            </div>
+          </div>
+          <span>All active zone limits combined</span>
+        </div>
+
+        <div class="summary-grid">
+          <div class="metric">
+            <span>
+              <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 19h16"/>
+                <path d="M7 16V9"/>
+                <path d="M12 16V5"/>
+                <path d="M17 16v-4"/>
+              </svg>
+              Total period use
+            </span>
+            <strong>{{ "%.0f"|format(summary.total_period_consumption_l) }} L</strong>
+          </div>
+          <div class="metric">
+            <span>
+              <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4v16"/>
+                <path d="M5 12h14"/>
+                <path d="M7 7h10v10H7z"/>
+              </svg>
+              Active period limit
+            </span>
+            <strong>
+              {% if summary.total_active_period_limit_l > 0 %}
+                {{ "%.0f"|format(summary.total_active_period_limit_l) }} L
+              {% else %}
+                Not set
+              {% endif %}
+            </strong>
+          </div>
+          <div class="metric">
+            <span>
+              <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 8v5"/>
+                <path d="M12 17h.01"/>
+                <path d="M10.2 4.6 2.8 18a2 2 0 0 0 1.8 3h14.8a2 2 0 0 0 1.8-3L13.8 4.6a2 2 0 0 0-3.6 0Z"/>
+              </svg>
+              Warning threshold
+            </span>
+            <strong>{{ warning_threshold }}%</strong>
+          </div>
+        </div>
+
+        <div class="progress-panel">
+          <div class="progress-label">
+            <span>Period utilization</span>
+            <strong>
+              {% if summary.utilization_percent is not none %}
+                {{ "%.1f"|format(summary.utilization_percent) }}%
+              {% else %}
+                No active limit
+              {% endif %}
+            </strong>
+          </div>
+          <div class="progress-track">
+            <div
+              class="progress-fill progress-{{ summary.status_level }}"
+              style="width: {{ [summary.utilization_percent or 0, 100] | min }}%"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section" aria-labelledby="zone-activity-heading">
+        <div class="section-heading">
+          <div class="section-title">
+            <span class="icon-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+                <path d="M7 8h10"/>
+                <path d="M7 16h10"/>
+                <path d="M4 5h2v14H4z"/>
+                <path d="M18 5h2v14h-2z"/>
+              </svg>
+            </span>
+            <div>
+              <p class="eyebrow">Zones</p>
+              <h2 id="zone-activity-heading">Zone activity</h2>
+            </div>
+          </div>
+          <span>{{ summary.zones | length }} monitored zones</span>
+        </div>
+
+        <div class="zone-list" aria-label="Zones">
+          {% for zone_state in summary.zones %}
+            {% set zone = zone_state.live %}
+            <a class="zone-row" href="/zones/{{ zone.zone_id }}">
+              <div class="zone-title">
+                <span class="zone-index">Zone {{ zone.zone_id }}</span>
+                <strong>{{ zone.zone_name }}</strong>
+              </div>
+              <div class="zone-state {{ 'unknown' if not summary.live_available else 'closed' if zone.effective_stop else 'open' }}">
+                {% if not summary.live_available %}
+                  Unknown
+                {% else %}
+                  {{ "Stopped" if zone.effective_stop else "Allowed" }}
+                {% endif %}
+              </div>
+              <div class="zone-values">
+                <span>{{ "%.0f"|format(zone.period_consumption_l) }} L</span>
+                {% if zone.period_limit_active and zone.period_limit_l > 0 %}
+                  <small>of {{ "%.0f"|format(zone.period_limit_l) }} L</small>
+                {% else %}
+                  <small>No active limit</small>
+                {% endif %}
+              </div>
+              <div class="zone-progress">
+                <div class="zone-progress-label">
+                  <span>{{ zone_state.status_label }}</span>
+                  <strong>
+                    {% if zone_state.utilization_percent is not none %}
+                      {{ "%.1f"|format(zone_state.utilization_percent) }}%
+                    {% else %}
+                      -
+                    {% endif %}
+                  </strong>
+                </div>
+                <div class="progress-track compact">
+                  <div
+                    class="progress-fill progress-{{ zone_state.status_level }}"
+                    style="width: {{ [zone_state.utilization_percent or 0, 100] | min }}%"
+                  ></div>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

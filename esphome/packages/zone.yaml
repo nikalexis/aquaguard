@@ -34,6 +34,41 @@ globals:
     restore_value: true
     initial_value: "0"
 
+  - id: zone_${zone}_flow_rate_60s_bucket_0
+    type: uint16_t
+    restore_value: false
+    initial_value: "0"
+
+  - id: zone_${zone}_flow_rate_60s_bucket_1
+    type: uint16_t
+    restore_value: false
+    initial_value: "0"
+
+  - id: zone_${zone}_flow_rate_60s_bucket_2
+    type: uint16_t
+    restore_value: false
+    initial_value: "0"
+
+  - id: zone_${zone}_flow_rate_60s_bucket_3
+    type: uint16_t
+    restore_value: false
+    initial_value: "0"
+
+  - id: zone_${zone}_flow_rate_60s_bucket_4
+    type: uint16_t
+    restore_value: false
+    initial_value: "0"
+
+  - id: zone_${zone}_flow_rate_60s_bucket_5
+    type: uint16_t
+    restore_value: false
+    initial_value: "0"
+
+  - id: zone_${zone}_flow_rate_60s_bucket_index
+    type: uint8_t
+    restore_value: false
+    initial_value: "0"
+
 text:
   - platform: template
     id: zone_${zone}_name
@@ -192,7 +227,6 @@ binary_sensor:
       number: ${di_pin}
       mode: INPUT_PULLUP
       inverted: true
-      allow_other_uses: true
     filters:
       - delayed_on_off: 10ms
     on_press:
@@ -200,6 +234,15 @@ binary_sensor:
         - lambda: |-
             id(zone_${zone}_meter_consumption_l_value) += 1.0f;
             id(zone_${zone}_meter_consumption_l).publish_state(id(zone_${zone}_meter_consumption_l_value));
+
+            switch (id(zone_${zone}_flow_rate_60s_bucket_index)) {
+              case 0: id(zone_${zone}_flow_rate_60s_bucket_0) += 1; break;
+              case 1: id(zone_${zone}_flow_rate_60s_bucket_1) += 1; break;
+              case 2: id(zone_${zone}_flow_rate_60s_bucket_2) += 1; break;
+              case 3: id(zone_${zone}_flow_rate_60s_bucket_3) += 1; break;
+              case 4: id(zone_${zone}_flow_rate_60s_bucket_4) += 1; break;
+              default: id(zone_${zone}_flow_rate_60s_bucket_5) += 1; break;
+            }
 
             auto now = id(sntp_time).now();
             if (now.is_valid()) {
@@ -270,29 +313,39 @@ sensor:
       const float raw_period_consumption = id(zone_${zone}_meter_consumption_l_value) - id(zone_${zone}_period_baseline_l_value);
       return raw_period_consumption > 0.0f ? raw_period_consumption : 0.0f;
 
-  - platform: pulse_meter
-    id: zone_${zone}_flow_rate_ema_5m
-    name: "Zone ${zone} Flow Rate EMA 5m"
+  - platform: template
+    id: zone_${zone}_flow_rate_60s
+    name: "Zone ${zone} Flow Rate 60s"
     unit_of_measurement: "L/min"
     icon: "mdi:waves-arrow-right"
     accuracy_decimals: 2
     state_class: measurement
-    internal_filter: 10ms
-    internal_filter_mode: PULSE
-    timeout: 5min
+    update_interval: 10s
     web_server:
       sorting_group_id: zone_${zone}_group
       sorting_weight: 90
-    pin:
-      number: ${di_pin}
-      mode: INPUT_PULLUP
-      inverted: true
-      allow_other_uses: true
-    filters:
-      - heartbeat: 10s
-      - exponential_moving_average:
-          alpha: 0.0645
-          send_every: 1
+    lambda: |-
+      // Six 10-second buckets make a simple 60-second rolling flow rate.
+      const uint32_t pulse_count =
+          id(zone_${zone}_flow_rate_60s_bucket_0) +
+          id(zone_${zone}_flow_rate_60s_bucket_1) +
+          id(zone_${zone}_flow_rate_60s_bucket_2) +
+          id(zone_${zone}_flow_rate_60s_bucket_3) +
+          id(zone_${zone}_flow_rate_60s_bucket_4) +
+          id(zone_${zone}_flow_rate_60s_bucket_5);
+
+      id(zone_${zone}_flow_rate_60s_bucket_index) =
+          (id(zone_${zone}_flow_rate_60s_bucket_index) + 1) % 6;
+      switch (id(zone_${zone}_flow_rate_60s_bucket_index)) {
+        case 0: id(zone_${zone}_flow_rate_60s_bucket_0) = 0; break;
+        case 1: id(zone_${zone}_flow_rate_60s_bucket_1) = 0; break;
+        case 2: id(zone_${zone}_flow_rate_60s_bucket_2) = 0; break;
+        case 3: id(zone_${zone}_flow_rate_60s_bucket_3) = 0; break;
+        case 4: id(zone_${zone}_flow_rate_60s_bucket_4) = 0; break;
+        default: id(zone_${zone}_flow_rate_60s_bucket_5) = 0; break;
+      }
+
+      return pulse_count;
 
   - platform: template
     id: zone_${zone}_last_pulse_age
@@ -347,6 +400,14 @@ script:
           id(zone_${zone}_valve_wiring).publish_state(id(zone_${zone}_valve_wiring_no_value) ? "NO" : "NC");
           id(zone_${zone}_period_limit_active).publish_state(id(zone_${zone}_period_limit_active_value));
           id(zone_${zone}_admin_stop).publish_state(id(zone_${zone}_admin_stop_value));
+          id(zone_${zone}_flow_rate_60s_bucket_0) = 0;
+          id(zone_${zone}_flow_rate_60s_bucket_1) = 0;
+          id(zone_${zone}_flow_rate_60s_bucket_2) = 0;
+          id(zone_${zone}_flow_rate_60s_bucket_3) = 0;
+          id(zone_${zone}_flow_rate_60s_bucket_4) = 0;
+          id(zone_${zone}_flow_rate_60s_bucket_5) = 0;
+          id(zone_${zone}_flow_rate_60s_bucket_index) = 0;
+          id(zone_${zone}_flow_rate_60s).publish_state(0.0f);
       - component.update: zone_${zone}_last_pulse_age
       - component.update: zone_${zone}_last_pulse_timestamp
       - script.execute: zone_${zone}_apply_state

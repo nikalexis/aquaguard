@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Zone {{ zone_id }} - AquaGuard Stats</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <a class="back-link" href="/">Back to dashboard</a>
+          <p class="eyebrow">Zone {{ zone_id }}</p>
+          <h1>{{ zone.live.zone_name if zone else "Zone " ~ zone_id }}</h1>
+        </div>
+        {% if zone %}
+          <div class="status status-{{ zone.status_level }}">
+            {{ zone.status_label }}
+          </div>
+        {% endif %}
+      </header>
+
+      {% if summary.error %}
+        <section class="notice notice-error">
+          <svg class="notice-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 8v5"/>
+            <path d="M12 17h.01"/>
+            <path d="M10.2 4.6 2.8 18a2 2 0 0 0 1.8 3h14.8a2 2 0 0 0 1.8-3L13.8 4.6a2 2 0 0 0-3.6 0Z"/>
+          </svg>
+          <div>
+            <strong>AquaGuard is offline.</strong>
+            <span>Showing stored history where available.</span>
+          </div>
+          <button class="notice-detail" type="button" title="{{ summary.error }}" aria-label="Show technical error details">i</button>
+        </section>
+      {% endif %}
+
+      {% if zone %}
+        <section class="dashboard-section" aria-labelledby="zone-period-heading">
+          <div class="section-heading">
+            <div class="section-title">
+              <span class="icon-badge" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3.5c2.8 3.1 5.5 6.6 5.5 10.1a5.5 5.5 0 0 1-11 0C6.5 10.1 9.2 6.6 12 3.5Z"/>
+                  <path d="M9.4 14.1c.4 1.2 1.3 2 2.6 2"/>
+                </svg>
+              </span>
+              <div>
+                <p class="eyebrow">Current period</p>
+                <h2 id="zone-period-heading">Zone period usage</h2>
+              </div>
+            </div>
+            <span>{{ zone.status_label }}</span>
+          </div>
+
+          <div class="summary-grid">
+            <div class="metric">
+              <span>
+                <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 19h16"/>
+                  <path d="M7 16V9"/>
+                  <path d="M12 16V5"/>
+                  <path d="M17 16v-4"/>
+                </svg>
+                Period use
+              </span>
+              <strong>{{ "%.0f"|format(zone.live.period_consumption_l) }} L</strong>
+            </div>
+            <div class="metric">
+              <span>
+                <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 4v16"/>
+                  <path d="M5 12h14"/>
+                  <path d="M7 7h10v10H7z"/>
+                </svg>
+                Period limit
+              </span>
+              <strong>
+                {% if zone.live.period_limit_active and zone.live.period_limit_l > 0 %}
+                  {{ "%.0f"|format(zone.live.period_limit_l) }} L
+                {% else %}
+                  Not set
+                {% endif %}
+              </strong>
+            </div>
+            <div class="metric">
+              <span>
+                <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12h3l2-5 4 10 2-5h5"/>
+                </svg>
+                Flow rate 60s
+              </span>
+              <strong>
+                {% if zone.live.flow_rate_l_min is not none %}
+                  {{ "%.2f"|format(zone.live.flow_rate_l_min) }} L/min
+                {% else %}
+                  -
+                {% endif %}
+              </strong>
+            </div>
+          </div>
+
+          <div class="progress-panel">
+            <div class="progress-label">
+              <span>Zone period utilization</span>
+              <strong>
+                {% if zone.utilization_percent is not none %}
+                  {{ "%.1f"|format(zone.utilization_percent) }}%
+                {% else %}
+                  No active limit
+                {% endif %}
+              </strong>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill progress-{{ zone.status_level }}"
+                style="width: {{ [zone.utilization_percent or 0, 100] | min }}%"
+              ></div>
+            </div>
+          </div>
+        </section>
+      {% endif %}
+
+      <section class="dashboard-section" aria-labelledby="daily-consumption-heading">
+        <div class="section-heading">
+          <div class="section-title">
+            <span class="icon-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 19h16"/>
+                <path d="M7 16V9"/>
+                <path d="M12 16V5"/>
+                <path d="M17 16v-7"/>
+              </svg>
+            </span>
+            <div>
+              <p class="eyebrow">History</p>
+              <h2 id="daily-consumption-heading">Daily consumption</h2>
+            </div>
+          </div>
+          <span>{{ history_range.label }} · {{ points | length }} days</span>
+        </div>
+
+        <form class="history-controls" method="get" action="/zones/{{ zone_id }}">
+          <div class="range-toggle" role="radiogroup" aria-label="History range">
+            <label class="{{ 'active' if not history_range.is_monthly else '' }}">
+              <input
+                type="radio"
+                name="range"
+                value="last30"
+                {% if not history_range.is_monthly %}checked{% endif %}
+                onchange="this.form.submit()"
+              >
+              Last 30 days
+            </label>
+            <label class="{{ 'active' if history_range.is_monthly else '' }}">
+              <input
+                type="radio"
+                name="range"
+                value="monthly"
+                {% if history_range.is_monthly %}checked{% endif %}
+                onchange="this.form.submit()"
+              >
+              Monthly
+            </label>
+          </div>
+
+          <div class="monthly-controls {{ '' if history_range.is_monthly else 'is-hidden' }}">
+            {% if history_range.previous_month %}
+              <a
+                class="month-nav-button"
+                href="/zones/{{ zone_id }}?range=monthly&year={{ history_range.previous_month.year }}&month={{ history_range.previous_month.month }}"
+                aria-label="Previous month"
+                title="Previous month"
+              >
+                &larr;
+              </a>
+            {% else %}
+              <span class="month-nav-button disabled" aria-label="Previous month unavailable" title="Previous month unavailable">&larr;</span>
+            {% endif %}
+            <label>
+              <span>Year</span>
+              <select name="year" onchange="this.form.range.value='monthly'; this.form.submit()">
+                {% for available_month in history_range.available_months %}
+                  {% if loop.changed(available_month.year) %}
+                    <option
+                      value="{{ available_month.year }}"
+                      {% if available_month.year == history_range.selected_year %}selected{% endif %}
+                    >
+                      {{ available_month.year }}
+                    </option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </label>
+            <label>
+              <span>Month</span>
+              <select name="month" onchange="this.form.range.value='monthly'; this.form.submit()">
+                {% for month_name in month_names %}
+                  {% set month_number = loop.index %}
+                  {% if
+                    (history_range.selected_year > history_range.first_year or month_number >= history_range.first_month)
+                    and (history_range.selected_year < history_range.current_year or month_number <= history_range.current_month)
+                  %}
+                    <option
+                      value="{{ month_number }}"
+                      {% if month_number == history_range.selected_month %}selected{% endif %}
+                    >
+                      {{ month_name }}
+                    </option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </label>
+            {% if history_range.next_month %}
+              <a
+                class="month-nav-button"
+                href="/zones/{{ zone_id }}?range=monthly&year={{ history_range.next_month.year }}&month={{ history_range.next_month.month }}"
+                aria-label="Next month"
+                title="Next month"
+              >
+                &rarr;
+              </a>
+            {% else %}
+              <span class="month-nav-button disabled" aria-label="Next month unavailable" title="Next month unavailable">&rarr;</span>
+            {% endif %}
+          </div>
+        </form>
+
+        <div class="chart-panel">
+          {% if points %}
+            <div class="chart-legend" aria-label="Measurement quality legend">
+              <span><i class="legend-swatch quality-exact"></i>Exact</span>
+              <span><i class="legend-swatch quality-estimated"></i>Estimated</span>
+              <span><i class="legend-swatch quality-missing"></i>Missing</span>
+              <span><i class="legend-swatch quality-reset"></i>Reset</span>
+              <span><i class="legend-swatch quality-partial"></i>Partial</span>
+            </div>
+            <div class="chart" role="img" aria-label="Daily water consumption chart">
+              {% set max_value = ([1] + points | map(attribute='daily_consumption_l') | reject('none') | list) | max %}
+              {% for point in points %}
+                {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
+                {% set quality = point.measurement_quality %}
+                <div class="bar-wrap">
+                  <div
+                    class="bar quality-{{ quality }}"
+                    style="height: {{ [height, 100] | min }}%"
+                    title="{{ point.snapshot_date.isoformat() }}: {% if quality == 'estimated' %}Estimated{% if point.estimate_span_days %}, {{ point.estimate_span_days }}-day spread{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'exact' %}Exact: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'reset' %}Reset, 0 L{% elif quality == 'missing' %}Missing{% else %}Partial{% endif %}"
+                  ></div>
+                  <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
+                </div>
+              {% endfor %}
+            </div>
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Consumption</th>
+                  <th>Quality</th>
+                  <th>Span</th>
+                  <th>Meter total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for point in points | reverse %}
+                  {% set quality = point.measurement_quality %}
+                  <tr>
+                    <td>{{ point.snapshot_date.isoformat() }}</td>
+                    <td class="numeric-cell">
+                      {% if point.daily_consumption_l is none %}
+                        -
+                      {% else %}
+                        {{ "%.0f"|format(point.daily_consumption_l) }} L
+                      {% endif %}
+                    </td>
+                    <td>
+                      <span class="quality-badge quality-badge-{{ quality }}">
+                        {% if quality == 'estimated' %}
+                          Estimated
+                        {% elif quality == 'exact' %}
+                          Exact
+                        {% elif quality == 'reset' %}
+                          Reset
+                        {% elif quality == 'missing' %}
+                          Missing
+                        {% else %}
+                          Partial
+                        {% endif %}
+                      </span>
+                    </td>
+                    <td>
+                      {% if point.estimate_span_days %}
+                        {{ point.estimate_span_days }} days
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if point.meter_consumption_l is none %}
+                        -
+                      {% else %}
+                        {{ "%.0f"|format(point.meter_consumption_l) }} L
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="empty-state">No daily snapshots stored yet.</div>
+          {% endif %}
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
