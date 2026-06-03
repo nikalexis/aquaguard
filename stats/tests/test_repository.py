@@ -71,3 +71,55 @@ class SnapshotRepositoryTests(unittest.TestCase):
                 (2026, 5),
                 (2026, 4),
             ])
+
+    def test_replace_zone_measurements_stores_synthetic_rows(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repository = SnapshotRepository(Path(temp_dir) / "stats.sqlite3")
+            repository.init_schema()
+            real = ZoneDailySnapshot(
+                date(2026, 5, 1),
+                datetime(2026, 5, 1, 12),
+                1,
+                "Zone 1",
+                100,
+                0,
+                100,
+                200,
+                True,
+                daily_consumption_l=None,
+                measurement_quality="partial",
+            )
+            synthetic = ZoneDailySnapshot(
+                date(2026, 5, 2),
+                None,
+                1,
+                "Zone 1",
+                None,
+                None,
+                None,
+                None,
+                None,
+                has_device_snapshot=False,
+                daily_consumption_l=12.5,
+                measurement_quality="estimated",
+                estimate_span_days=2,
+            )
+
+            repository.upsert_snapshots([real])
+            repository.replace_zone_measurements(1, [real, synthetic])
+
+            points = repository.list_zone_daily_points_between(
+                zone_id=1,
+                start_date=date(2026, 5, 1),
+                end_date=date(2026, 5, 2),
+            )
+            latest = repository.list_latest_snapshots()
+
+            self.assertEqual([point.measurement_quality for point in points], [
+                "partial",
+                "estimated",
+            ])
+            self.assertEqual(points[1].daily_consumption_l, 12.5)
+            self.assertEqual(points[1].estimate_span_days, 2)
+            self.assertEqual(len(latest), 1)
+            self.assertEqual(latest[0].snapshot_date, date(2026, 5, 1))

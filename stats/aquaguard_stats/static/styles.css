@@ -11,6 +11,8 @@
   --warn: #b7791f;
   --alert: #b93c32;
   --offline: #58606a;
+  --estimate: #c28a17;
+  --partial: #6d8792;
   --shadow: 0 18px 50px rgb(28 45 40 / 10%);
 }
 
@@ -378,6 +380,28 @@ h2 {
   padding: 18px;
 }
 
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
 .history-controls {
   display: flex;
   align-items: center;
@@ -497,20 +521,39 @@ h2 {
   background: linear-gradient(180deg, var(--water), var(--water-strong));
 }
 
-.bar.partial {
+.quality-exact {
+  background: linear-gradient(180deg, var(--water), var(--water-strong));
+}
+
+.quality-estimated {
+  background: linear-gradient(180deg, #e6b447, var(--estimate));
+}
+
+.quality-partial {
   background: repeating-linear-gradient(
     135deg,
-    #a6b4af,
-    #a6b4af 6px,
-    #d8e0dc 6px,
-    #d8e0dc 12px
+    var(--partial),
+    var(--partial) 6px,
+    #d5dde0 6px,
+    #d5dde0 12px
   );
 }
 
-.bar.missing {
-  min-height: 0;
-  border: 1px dashed #a6b4af;
+.quality-reset {
+  background: linear-gradient(180deg, #d96a61, var(--alert));
+}
+
+.bar.quality-reset {
+  min-height: 6px;
+}
+
+.quality-missing {
+  border: 1px dashed #98a5a1;
   background: transparent;
+}
+
+.bar.quality-missing {
+  min-height: 0;
 }
 
 .bar-wrap span {
@@ -535,6 +578,54 @@ h2 {
   color: var(--muted);
   font-size: 0.82rem;
   text-transform: uppercase;
+}
+
+.numeric-cell {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.quality-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: rgb(251 252 250 / 80%);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.quality-badge-exact {
+  border-color: rgb(22 125 143 / 32%);
+  background: rgb(22 125 143 / 10%);
+  color: var(--water-strong);
+}
+
+.quality-badge-estimated {
+  border-color: rgb(194 138 23 / 34%);
+  background: rgb(194 138 23 / 12%);
+  color: #8a5b08;
+}
+
+.quality-badge-missing {
+  border-style: dashed;
+  background: rgb(88 96 106 / 8%);
+  color: var(--offline);
+}
+
+.quality-badge-reset {
+  border-color: rgb(185 60 50 / 34%);
+  background: rgb(185 60 50 / 11%);
+  color: var(--alert);
+}
+
+.quality-badge-partial {
+  border-color: rgb(109 135 146 / 34%);
+  background: rgb(109 135 146 / 12%);
+  color: var(--partial);
 }
 
 .empty-state {
@@ -593,6 +684,12 @@ h2 {
 
   .zone-state {
     width: fit-content;
+  }
+
+  .history-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 
   .chart {

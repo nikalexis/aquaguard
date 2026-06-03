@@ -229,15 +229,23 @@
 
         <div class="chart-panel">
           {% if points %}
+            <div class="chart-legend" aria-label="Measurement quality legend">
+              <span><i class="legend-swatch quality-exact"></i>Exact</span>
+              <span><i class="legend-swatch quality-estimated"></i>Estimated</span>
+              <span><i class="legend-swatch quality-missing"></i>Missing</span>
+              <span><i class="legend-swatch quality-reset"></i>Reset</span>
+              <span><i class="legend-swatch quality-partial"></i>Partial</span>
+            </div>
             <div class="chart" role="img" aria-label="Daily water consumption chart">
               {% set max_value = ([1] + points | map(attribute='daily_consumption_l') | reject('none') | list) | max %}
               {% for point in points %}
                 {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
+                {% set quality = point.measurement_quality %}
                 <div class="bar-wrap">
                   <div
-                    class="bar {{ 'missing' if point.missing else 'partial' if point.partial else '' }}"
+                    class="bar quality-{{ quality }}"
                     style="height: {{ [height, 100] | min }}%"
-                    title="{{ point.snapshot_date.isoformat() }}: {% if point.missing %}missing{% elif point.daily_consumption_l is not none %}{{ point.daily_consumption_l }} L{% else %}partial{% endif %}"
+                    title="{{ point.snapshot_date.isoformat() }}: {% if quality == 'estimated' %}Estimated{% if point.estimate_span_days %}, {{ point.estimate_span_days }}-day spread{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'exact' %}Exact: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'reset' %}Reset, 0 L{% elif quality == 'missing' %}Missing{% else %}Partial{% endif %}"
                   ></div>
                   <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
                 </div>
@@ -247,21 +255,44 @@
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Daily use</th>
+                  <th>Consumption</th>
+                  <th>Quality</th>
+                  <th>Span</th>
                   <th>Meter total</th>
                 </tr>
               </thead>
               <tbody>
                 {% for point in points | reverse %}
+                  {% set quality = point.measurement_quality %}
                   <tr>
                     <td>{{ point.snapshot_date.isoformat() }}</td>
-                    <td>
-                      {% if point.missing %}
-                        Missing
-                      {% elif point.daily_consumption_l is none %}
-                        Partial
+                    <td class="numeric-cell">
+                      {% if point.daily_consumption_l is none %}
+                        -
                       {% else %}
                         {{ "%.0f"|format(point.daily_consumption_l) }} L
+                      {% endif %}
+                    </td>
+                    <td>
+                      <span class="quality-badge quality-badge-{{ quality }}">
+                        {% if quality == 'estimated' %}
+                          Estimated
+                        {% elif quality == 'exact' %}
+                          Exact
+                        {% elif quality == 'reset' %}
+                          Reset
+                        {% elif quality == 'missing' %}
+                          Missing
+                        {% else %}
+                          Partial
+                        {% endif %}
+                      </span>
+                    </td>
+                    <td>
+                      {% if point.estimate_span_days %}
+                        {{ point.estimate_span_days }} days
+                      {% else %}
+                        -
                       {% endif %}
                     </td>
                     <td>

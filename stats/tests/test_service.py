@@ -19,6 +19,7 @@ class HistoryRangeServiceTests(unittest.TestCase):
             db_path=Path(temp_dir.name) / "stats.sqlite3",
             timezone="Europe/Athens",
             warning_threshold=0.8,
+            meter_reset_threshold_l=1.0,
             refresh_timeout_s=1,
             host="127.0.0.1",
             port=8080,

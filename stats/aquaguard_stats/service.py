@@ -12,8 +12,7 @@ from .models import (
     ZoneDailySnapshot,
     ZoneLiveState,
     build_dashboard_summary,
-    snapshots_to_calendar_daily_points,
-    snapshots_to_daily_points,
+    calculate_daily_measurements,
 )
 from .repository import SnapshotRepository
 
@@ -66,11 +65,24 @@ class StatsService:
             )
             for zone in zones
         ]
-        return self.repository.upsert_snapshots(snapshots)
+        rows = self.repository.upsert_snapshots(snapshots)
+        self._recalculate_daily_measurements(
+            zone_ids={snapshot.zone_id for snapshot in snapshots}
+        )
+        return rows
 
     def get_zone_daily_points(self, zone_id: int, limit: int = 90):
-        return snapshots_to_daily_points(
-            self.repository.list_zone_snapshots(zone_id=zone_id, limit=limit)
+        snapshots = self.repository.list_zone_snapshots(zone_id=zone_id, limit=limit)
+        self._recalculate_daily_measurements(zone_ids={zone_id})
+        if not snapshots:
+            return []
+        start_date = snapshots[0].snapshot_date
+        end_date = snapshots[-1].snapshot_date
+        self.repository.ensure_missing_measurements(zone_id, start_date, end_date)
+        return self.repository.list_zone_daily_points_between(
+            zone_id=zone_id,
+            start_date=start_date,
+            end_date=end_date,
         )
 
     def resolve_history_range(
@@ -150,16 +162,25 @@ class StatsService:
         zone_id: int,
         history_range: HistoryRange,
     ):
-        snapshots = self.repository.list_zone_snapshots_between(
+        self._recalculate_daily_measurements(zone_ids={zone_id})
+        self.repository.ensure_missing_measurements(
             zone_id=zone_id,
             start_date=history_range.start_date,
             end_date=history_range.end_date,
         )
-        return snapshots_to_calendar_daily_points(
-            snapshots,
+        return self.repository.list_zone_daily_points_between(
+            zone_id=zone_id,
             start_date=history_range.start_date,
             end_date=history_range.end_date,
         )
+
+    def _recalculate_daily_measurements(self, zone_ids: set[int]) -> None:
+        for zone_id in zone_ids:
+            measurements = calculate_daily_measurements(
+                self.repository.list_zone_snapshots(zone_id=zone_id, limit=10000),
+                reset_threshold_l=self.settings.meter_reset_threshold_l,
+            )
+            self.repository.replace_zone_measurements(zone_id, measurements)
 
 
 def _snapshots_to_fallback_zones(
@@ -169,11 +190,11 @@ def _snapshots_to_fallback_zones(
         ZoneLiveState(
             zone_id=snapshot.zone_id,
             zone_name=snapshot.zone_name,
-            meter_consumption_l=snapshot.meter_consumption_l,
-            period_baseline_l=snapshot.period_baseline_l,
-            period_consumption_l=snapshot.period_consumption_l,
-            period_limit_l=snapshot.period_limit_l,
-            period_limit_active=snapshot.period_limit_active,
+            meter_consumption_l=snapshot.meter_consumption_l or 0.0,
+            period_baseline_l=snapshot.period_baseline_l or 0.0,
+            period_consumption_l=snapshot.period_consumption_l or 0.0,
+            period_limit_l=snapshot.period_limit_l or 0.0,
+            period_limit_active=bool(snapshot.period_limit_active),
             effective_stop=True,
             water_allowed=False,
             flow_rate_l_min=None,

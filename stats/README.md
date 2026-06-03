@@ -13,6 +13,7 @@ AQUAGUARD_API_ENCRYPTION_KEY=...
 AQUAGUARD_DB_PATH=data/aquaguard-stats.sqlite3
 AQUAGUARD_TIMEZONE=Europe/Athens
 AQUAGUARD_WARNING_THRESHOLD=0.8
+AQUAGUARD_METER_RESET_THRESHOLD_L=1.0
 ```
 
 ## Run Locally
@@ -44,7 +45,7 @@ docker run --rm \
   aquaguard-stats
 ```
 
-The app stores one idempotent snapshot per zone per local day at 12:00.
+The app stores one idempotent snapshot per zone per local day at 12:00. It also stores chart-ready daily measurement quality: exact, estimated, missing, reset, or partial. `AQUAGUARD_METER_RESET_THRESHOLD_L` controls how large a counter drop must be before it is treated as a meter reset.
 
 Or from this directory:
 

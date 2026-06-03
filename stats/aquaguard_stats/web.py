@@ -112,8 +112,10 @@ def create_app() -> FastAPI:
                     {
                         "date": point.snapshot_date.isoformat(),
                         "value": point.daily_consumption_l,
+                        "measurement_quality": point.measurement_quality,
                         "partial": point.partial,
                         "missing": point.missing,
+                        "estimate_span_days": point.estimate_span_days,
                     }
                     for point in points
                 ],

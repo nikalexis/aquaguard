@@ -6,8 +6,7 @@ from aquaguard_stats.models import (
     ZoneLiveState,
     build_dashboard_summary,
     build_zone_dashboard_state,
-    snapshots_to_calendar_daily_points,
-    snapshots_to_daily_points,
+    calculate_daily_measurements,
 )
 
 
@@ -69,33 +68,28 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(summary.zones[0].status_label, "Unknown")
 
 
-    def test_daily_points_compute_meter_deltas_and_mark_first_partial(self):
+    def test_daily_measurements_compute_exact_deltas_and_first_partial(self):
         snapshots = [
             ZoneDailySnapshot(date(2026, 5, 1), datetime(2026, 5, 1, 12), 1, "One", 100, 0, 100, 200, True),
             ZoneDailySnapshot(date(2026, 5, 2), datetime(2026, 5, 2, 12), 1, "One", 115, 0, 115, 200, True),
             ZoneDailySnapshot(date(2026, 5, 3), datetime(2026, 5, 3, 12), 1, "One", 120, 0, 120, 200, True),
         ]
 
-        points = snapshots_to_daily_points(snapshots)
+        points = calculate_daily_measurements(snapshots, reset_threshold_l=1.0)
 
         self.assertIsNone(points[0].daily_consumption_l)
-        self.assertIs(points[0].partial, True)
+        self.assertEqual(points[0].measurement_quality, "partial")
         self.assertEqual(points[1].daily_consumption_l, 15)
-        self.assertIs(points[1].partial, False)
+        self.assertEqual(points[1].measurement_quality, "exact")
         self.assertEqual(points[2].daily_consumption_l, 5)
 
-    def test_calendar_daily_points_show_missing_days_as_gaps(self):
+    def test_daily_measurements_spread_estimates_across_missing_days(self):
         snapshots = [
             ZoneDailySnapshot(date(2026, 5, 1), datetime(2026, 5, 1, 12), 1, "One", 100, 0, 100, 200, True),
-            ZoneDailySnapshot(date(2026, 5, 3), datetime(2026, 5, 3, 12), 1, "One", 145, 0, 145, 200, True),
             ZoneDailySnapshot(date(2026, 5, 4), datetime(2026, 5, 4, 12), 1, "One", 160, 0, 160, 200, True),
         ]
 
-        points = snapshots_to_calendar_daily_points(
-            snapshots,
-            start_date=date(2026, 5, 1),
-            end_date=date(2026, 5, 4),
-        )
+        points = calculate_daily_measurements(snapshots, reset_threshold_l=1.0)
 
         self.assertEqual([point.snapshot_date for point in points], [
             date(2026, 5, 1),
@@ -103,7 +97,44 @@ class ModelTests(unittest.TestCase):
             date(2026, 5, 3),
             date(2026, 5, 4),
         ])
-        self.assertIs(points[1].missing, True)
-        self.assertIs(points[2].partial, True)
-        self.assertIsNone(points[2].daily_consumption_l)
-        self.assertEqual(points[3].daily_consumption_l, 15)
+        self.assertEqual([point.measurement_quality for point in points], [
+            "partial",
+            "estimated",
+            "estimated",
+            "estimated",
+        ])
+        self.assertEqual([point.daily_consumption_l for point in points], [
+            None,
+            20,
+            20,
+            20,
+        ])
+        self.assertEqual(points[1].estimate_span_days, 3)
+        self.assertIs(points[1].has_device_snapshot, False)
+        self.assertIs(points[3].has_device_snapshot, True)
+
+    def test_daily_measurements_mark_reset_and_missing_gap(self):
+        snapshots = [
+            ZoneDailySnapshot(date(2026, 5, 1), datetime(2026, 5, 1, 12), 1, "One", 100, 0, 100, 200, True),
+            ZoneDailySnapshot(date(2026, 5, 3), datetime(2026, 5, 3, 12), 1, "One", 50, 0, 50, 200, True),
+        ]
+
+        points = calculate_daily_measurements(snapshots, reset_threshold_l=1.0)
+
+        self.assertEqual([(point.snapshot_date, point.measurement_quality) for point in points], [
+            (date(2026, 5, 1), "partial"),
+            (date(2026, 5, 2), "missing"),
+            (date(2026, 5, 3), "reset"),
+        ])
+        self.assertEqual(points[2].daily_consumption_l, 0)
+
+    def test_daily_measurements_treat_tiny_negative_delta_as_zero_exact(self):
+        snapshots = [
+            ZoneDailySnapshot(date(2026, 5, 1), datetime(2026, 5, 1, 12), 1, "One", 100, 0, 100, 200, True),
+            ZoneDailySnapshot(date(2026, 5, 2), datetime(2026, 5, 2, 12), 1, "One", 99.5, 0, 99.5, 200, True),
+        ]
+
+        points = calculate_daily_measurements(snapshots, reset_threshold_l=1.0)
+
+        self.assertEqual(points[1].measurement_quality, "exact")
+        self.assertEqual(points[1].daily_consumption_l, 0)

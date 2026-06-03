@@ -14,6 +14,7 @@ class Settings:
     db_path: Path
     timezone: str
     warning_threshold: float
+    meter_reset_threshold_l: float
     refresh_timeout_s: float
     host: str
     port: int
@@ -35,6 +36,9 @@ def load_settings() -> Settings:
     threshold = float(os.getenv("AQUAGUARD_WARNING_THRESHOLD", "0.8"))
     if threshold <= 0:
         threshold = 0.8
+    reset_threshold = float(os.getenv("AQUAGUARD_METER_RESET_THRESHOLD_L", "1.0"))
+    if reset_threshold < 0:
+        reset_threshold = 1.0
 
     return Settings(
         esphome_host=os.getenv("AQUAGUARD_ESPHOME_HOST", "aquaguard.local"),
@@ -43,6 +47,7 @@ def load_settings() -> Settings:
         db_path=Path(os.getenv("AQUAGUARD_DB_PATH", "data/aquaguard-stats.sqlite3")),
         timezone=os.getenv("AQUAGUARD_TIMEZONE", "Europe/Athens"),
         warning_threshold=threshold,
+        meter_reset_threshold_l=reset_threshold,
         refresh_timeout_s=float(os.getenv("AQUAGUARD_REFRESH_TIMEOUT_S", "8")),
         host=os.getenv("AQUAGUARD_HTTP_HOST", "0.0.0.0"),
         port=int(os.getenv("AQUAGUARD_HTTP_PORT", "8080")),
