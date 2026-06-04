@@ -4,7 +4,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from aquaguard_stats.config import Settings
-from aquaguard_stats.models import ZoneDailySnapshot
+from aquaguard_stats.models import AvailableMonth, HistoryRange, ZoneDailySnapshot
 from aquaguard_stats.repository import SnapshotRepository
 from aquaguard_stats.service import StatsService
 
@@ -133,3 +133,45 @@ class HistoryRangeServiceTests(unittest.TestCase):
             self.assertEqual(history_range.selected_year, 2026)
             self.assertEqual(history_range.selected_month, 3)
             self.assertIsNone(history_range.previous_month)
+
+    def test_daily_points_fill_missing_dates_without_persisting_them(self):
+        temp_dir, _settings, service = self.make_service()
+        with temp_dir:
+            history_range = HistoryRange(
+                mode="monthly",
+                start_date=date(2026, 5, 11),
+                end_date=date(2026, 5, 15),
+                selected_year=2026,
+                selected_month=5,
+                available_months=[AvailableMonth(2026, 5)],
+                current_year=2026,
+                current_month=5,
+                first_year=2026,
+                first_month=5,
+            )
+
+            points = service.get_zone_daily_points_for_range(1, history_range)
+            persisted = service.repository.list_zone_daily_points_between(
+                zone_id=1,
+                start_date=history_range.start_date,
+                end_date=history_range.end_date,
+            )
+
+            self.assertEqual([point.snapshot_date for point in points], [
+                date(2026, 5, 11),
+                date(2026, 5, 12),
+                date(2026, 5, 13),
+                date(2026, 5, 14),
+                date(2026, 5, 15),
+            ])
+            self.assertEqual([point.measurement_quality for point in points], [
+                "missing",
+                "missing",
+                "partial",
+                "missing",
+                "missing",
+            ])
+            self.assertEqual(
+                [(point.snapshot_date, point.measurement_quality) for point in persisted],
+                [(date(2026, 5, 13), "partial")],
+            )

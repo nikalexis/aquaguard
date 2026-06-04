@@ -8,6 +8,7 @@ from .esphome_client import AquaGuardAPIError, ESPHomeZoneReader
 from .models import (
     DashboardSummary,
     AvailableMonth,
+    DailyConsumptionPoint,
     HistoryRange,
     ZoneDailySnapshot,
     ZoneLiveState,
@@ -73,17 +74,16 @@ class StatsService:
 
     def get_zone_daily_points(self, zone_id: int, limit: int = 90):
         snapshots = self.repository.list_zone_snapshots(zone_id=zone_id, limit=limit)
-        self._recalculate_daily_measurements(zone_ids={zone_id})
         if not snapshots:
             return []
         start_date = snapshots[0].snapshot_date
         end_date = snapshots[-1].snapshot_date
-        self.repository.ensure_missing_measurements(zone_id, start_date, end_date)
-        return self.repository.list_zone_daily_points_between(
+        points = self.repository.list_zone_daily_points_between(
             zone_id=zone_id,
             start_date=start_date,
             end_date=end_date,
         )
+        return _fill_missing_daily_points(points, start_date, end_date)
 
     def resolve_history_range(
         self,
@@ -162,16 +162,15 @@ class StatsService:
         zone_id: int,
         history_range: HistoryRange,
     ):
-        self._recalculate_daily_measurements(zone_ids={zone_id})
-        self.repository.ensure_missing_measurements(
+        points = self.repository.list_zone_daily_points_between(
             zone_id=zone_id,
             start_date=history_range.start_date,
             end_date=history_range.end_date,
         )
-        return self.repository.list_zone_daily_points_between(
-            zone_id=zone_id,
-            start_date=history_range.start_date,
-            end_date=history_range.end_date,
+        return _fill_missing_daily_points(
+            points,
+            history_range.start_date,
+            history_range.end_date,
         )
 
     def _recalculate_daily_measurements(self, zone_ids: set[int]) -> None:
@@ -206,3 +205,39 @@ def _snapshots_to_fallback_zones(
 
 def _valid_month(year: int, month: int) -> bool:
     return 1 <= month <= 12 and 1970 <= year <= 9999
+
+
+def _fill_missing_daily_points(
+    points: list[DailyConsumptionPoint],
+    start_date: date,
+    end_date: date,
+) -> list[DailyConsumptionPoint]:
+    if not points:
+        return []
+
+    points_by_date = {
+        point.snapshot_date: point
+        for point in points
+    }
+    zone_name = next(
+        (point.zone_name for point in reversed(points) if point.zone_name),
+        "",
+    )
+    filled_points: list[DailyConsumptionPoint] = []
+    current = start_date
+    while current <= end_date:
+        point = points_by_date.get(current)
+        if point is None:
+            point = DailyConsumptionPoint(
+                snapshot_date=current,
+                zone_name=zone_name,
+                meter_consumption_l=None,
+                daily_consumption_l=None,
+                measurement_quality="missing",
+                partial=False,
+                missing=True,
+                estimate_span_days=None,
+            )
+        filled_points.append(point)
+        current += timedelta(days=1)
+    return filled_points

@@ -172,57 +172,6 @@ class SnapshotRepository:
                 rows,
             )
 
-    def ensure_missing_measurements(
-        self,
-        zone_id: int,
-        start_date: date,
-        end_date: date,
-    ) -> None:
-        latest_name = self.latest_zone_name(zone_id)
-        if latest_name is None:
-            return
-
-        with self.connect() as connection:
-            rows = connection.execute(
-                """
-                SELECT snapshot_date
-                FROM zone_daily_snapshots
-                WHERE zone_id = ?
-                  AND snapshot_date >= ?
-                  AND snapshot_date <= ?
-                """,
-                (zone_id, start_date.isoformat(), end_date.isoformat()),
-            ).fetchall()
-            existing_dates = {date.fromisoformat(row["snapshot_date"]) for row in rows}
-            missing_rows = [
-                (
-                    current.isoformat(),
-                    zone_id,
-                    latest_name,
-                    0,
-                    None,
-                    "missing",
-                    None,
-                )
-                for current in _date_range(start_date, end_date)
-                if current not in existing_dates
-            ]
-            connection.executemany(
-                """
-                INSERT INTO zone_daily_snapshots (
-                  snapshot_date,
-                  zone_id,
-                  zone_name,
-                  has_device_snapshot,
-                  daily_consumption_l,
-                  measurement_quality,
-                  estimate_span_days
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                missing_rows,
-            )
-
     def list_zone_snapshots(
         self,
         zone_id: int,
@@ -416,9 +365,3 @@ class SnapshotRepository:
             ),
         )
 
-
-def _date_range(start_date: date, end_date: date):
-    current = start_date
-    while current <= end_date:
-        yield current
-        current = date.fromordinal(current.toordinal() + 1)
