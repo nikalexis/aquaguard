@@ -15,20 +15,31 @@
           <h1>{{ t("dashboard.title") }}</h1>
         </div>
         <div class="topbar-actions">
-          <nav class="language-switcher" aria-label="{{ t('language.selector') }}">
-            <a
-              class="language-button {{ 'active' if language == 'en' else '' }}"
-              href="{{ language_url('en') }}"
-              title="{{ t('language.switch_to_english') }}"
-              aria-label="{{ t('language.switch_to_english') }}"
-            >🇬🇧</a>
-            <a
-              class="language-button {{ 'active' if language == 'el' else '' }}"
-              href="{{ language_url('el') }}"
-              title="{{ t('language.switch_to_greek') }}"
-              aria-label="{{ t('language.switch_to_greek') }}"
-            >🇬🇷</a>
-          </nav>
+          <details class="language-menu">
+            <summary class="language-trigger" aria-label="{{ t('language.selector') }}">
+              <span aria-hidden="true">{{ "🇬🇷" if language == "el" else "🇬🇧" }}</span>
+            </summary>
+            <nav class="language-options" aria-label="{{ t('language.selector') }}">
+              <a
+                class="language-option {{ 'active' if language == 'en' else '' }}"
+                href="{{ language_url('en') }}"
+                title="{{ t('language.switch_to_english') }}"
+                aria-label="{{ t('language.switch_to_english') }}"
+              >
+                <span aria-hidden="true">🇬🇧</span>
+                {{ t("language.english") }}
+              </a>
+              <a
+                class="language-option {{ 'active' if language == 'el' else '' }}"
+                href="{{ language_url('el') }}"
+                title="{{ t('language.switch_to_greek') }}"
+                aria-label="{{ t('language.switch_to_greek') }}"
+              >
+                <span aria-hidden="true">🇬🇷</span>
+                {{ t("language.greek") }}
+              </a>
+            </nav>
+          </details>
           <div class="status status-{{ summary.status_level }}">
             {{ t("status.level." ~ summary.status_level) }}
           </div>
