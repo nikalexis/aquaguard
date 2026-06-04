@@ -48,6 +48,38 @@ a {
   margin-bottom: 28px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.language-switcher {
+  display: inline-flex;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px;
+  background: rgb(251 252 250 / 78%);
+  box-shadow: var(--shadow);
+}
+
+.language-button {
+  display: grid;
+  width: 36px;
+  height: 34px;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.language-button.active {
+  background: rgb(22 125 143 / 12%);
+  box-shadow: inset 0 0 0 1px rgb(22 125 143 / 32%);
+}
+
 .eyebrow {
   margin: 0 0 6px;
   color: var(--water-strong);
@@ -667,6 +699,11 @@ h2 {
   .section-heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .section-title {

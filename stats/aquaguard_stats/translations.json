@@ -1,0 +1,232 @@
+{
+  "en": {
+    "app": {
+      "title": "AquaGuard Stats"
+    },
+    "common": {
+      "days": "{count} days",
+      "not_set": "Not set",
+      "dash": "-",
+      "liters": "L",
+      "liters_per_minute": "L/min"
+    },
+    "language": {
+      "selector": "Language",
+      "english": "English",
+      "greek": "Greek",
+      "switch_to_english": "Switch to English",
+      "switch_to_greek": "Switch to Greek"
+    },
+    "status": {
+      "level": {
+        "ok": "Ok",
+        "warning": "Warning",
+        "alert": "Alert",
+        "offline": "Offline",
+        "inactive": "Inactive"
+      },
+      "label": {
+        "ok": "Ok",
+        "limit_reached": "Limit reached",
+        "near_limit": "Near limit",
+        "no_active_limit": "No active limit",
+        "stopped": "Stopped",
+        "unknown": "Unknown",
+        "allowed": "Allowed"
+      }
+    },
+    "notice": {
+      "offline_title": "AquaGuard is offline.",
+      "dashboard_offline_body": "Showing the latest stored snapshot.",
+      "zone_offline_body": "Showing stored history where available.",
+      "technical_details": "Show technical error details"
+    },
+    "dashboard": {
+      "title": "Water activity",
+      "overview": "Overview",
+      "total_period_usage": "Total period usage",
+      "all_active_limits": "All active zone limits combined",
+      "total_period_use": "Total period use",
+      "active_period_limit": "Active period limit",
+      "warning_threshold": "Warning threshold",
+      "period_utilization": "Period utilization",
+      "zones": "Zones",
+      "zone_activity": "Zone activity",
+      "monitored_zones": "{count} monitored zones",
+      "zones_aria": "Zones",
+      "zone_number": "Zone {number}",
+      "of_liters": "of {value} L"
+    },
+    "zone": {
+      "page_title": "Zone {number} - AquaGuard Stats",
+      "back_to_dashboard": "Back to dashboard",
+      "zone_number": "Zone {number}",
+      "current_period": "Current period",
+      "zone_period_usage": "Zone period usage",
+      "period_use": "Period use",
+      "period_limit": "Period limit",
+      "flow_rate_60s": "Flow rate 60s",
+      "zone_period_utilization": "Zone period utilization",
+      "history": "History",
+      "daily_consumption": "Daily consumption"
+    },
+    "history": {
+      "range_aria": "History range",
+      "last_30_days": "Last 30 days",
+      "monthly": "Monthly",
+      "previous_month": "Previous month",
+      "previous_month_unavailable": "Previous month unavailable",
+      "next_month": "Next month",
+      "next_month_unavailable": "Next month unavailable",
+      "year": "Year",
+      "month": "Month",
+      "legend_aria": "Measurement quality legend",
+      "chart_aria": "Daily water consumption chart",
+      "date": "Date",
+      "consumption": "Consumption",
+      "quality": "Quality",
+      "span": "Span",
+      "meter_total": "Meter total",
+      "no_snapshots": "No daily snapshots stored yet.",
+      "estimate_spread": "{count}-day spread",
+      "expecting_at_noon": "Expecting at 12:00"
+    },
+    "quality": {
+      "exact": "Exact",
+      "estimated": "Estimated",
+      "expected": "Expected",
+      "missing": "Missing",
+      "reset": "Reset",
+      "partial": "Partial"
+    },
+    "months": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ]
+  },
+  "el": {
+    "app": {
+      "title": "Στατιστικά AquaGuard"
+    },
+    "common": {
+      "days": "{count} ημέρες",
+      "not_set": "Δεν έχει οριστεί",
+      "dash": "-",
+      "liters": "L",
+      "liters_per_minute": "L/min"
+    },
+    "language": {
+      "selector": "Γλώσσα",
+      "english": "Αγγλικά",
+      "greek": "Ελληνικά",
+      "switch_to_english": "Αλλαγή σε Αγγλικά",
+      "switch_to_greek": "Αλλαγή σε Ελληνικά"
+    },
+    "status": {
+      "level": {
+        "ok": "Εντάξει",
+        "warning": "Προειδοποίηση",
+        "alert": "Συναγερμός",
+        "offline": "Εκτός σύνδεσης",
+        "inactive": "Ανενεργό"
+      },
+      "label": {
+        "ok": "Εντάξει",
+        "limit_reached": "Το όριο επιτεύχθηκε",
+        "near_limit": "Κοντά στο όριο",
+        "no_active_limit": "Χωρίς ενεργό όριο",
+        "stopped": "Σταματημένο",
+        "unknown": "Άγνωστο",
+        "allowed": "Επιτρέπεται"
+      }
+    },
+    "notice": {
+      "offline_title": "Το AquaGuard είναι εκτός σύνδεσης.",
+      "dashboard_offline_body": "Εμφανίζεται το πιο πρόσφατο αποθηκευμένο στιγμιότυπο.",
+      "zone_offline_body": "Εμφανίζεται το αποθηκευμένο ιστορικό όπου υπάρχει.",
+      "technical_details": "Εμφάνιση τεχνικών λεπτομερειών σφάλματος"
+    },
+    "dashboard": {
+      "title": "Δραστηριότητα νερού",
+      "overview": "Επισκόπηση",
+      "total_period_usage": "Συνολική χρήση περιόδου",
+      "all_active_limits": "Όλα τα ενεργά όρια ζωνών μαζί",
+      "total_period_use": "Συνολική χρήση περιόδου",
+      "active_period_limit": "Ενεργό όριο περιόδου",
+      "warning_threshold": "Όριο προειδοποίησης",
+      "period_utilization": "Αξιοποίηση περιόδου",
+      "zones": "Ζώνες",
+      "zone_activity": "Δραστηριότητα ζωνών",
+      "monitored_zones": "{count} ζώνες υπό παρακολούθηση",
+      "zones_aria": "Ζώνες",
+      "zone_number": "Ζώνη {number}",
+      "of_liters": "από {value} L"
+    },
+    "zone": {
+      "page_title": "Ζώνη {number} - Στατιστικά AquaGuard",
+      "back_to_dashboard": "Πίσω στον πίνακα",
+      "zone_number": "Ζώνη {number}",
+      "current_period": "Τρέχουσα περίοδος",
+      "zone_period_usage": "Χρήση περιόδου ζώνης",
+      "period_use": "Χρήση περιόδου",
+      "period_limit": "Όριο περιόδου",
+      "flow_rate_60s": "Ροή 60s",
+      "zone_period_utilization": "Αξιοποίηση περιόδου ζώνης",
+      "history": "Ιστορικό",
+      "daily_consumption": "Ημερήσια κατανάλωση"
+    },
+    "history": {
+      "range_aria": "Εύρος ιστορικού",
+      "last_30_days": "Τελευταίες 30 ημέρες",
+      "monthly": "Μηνιαία",
+      "previous_month": "Προηγούμενος μήνας",
+      "previous_month_unavailable": "Ο προηγούμενος μήνας δεν είναι διαθέσιμος",
+      "next_month": "Επόμενος μήνας",
+      "next_month_unavailable": "Ο επόμενος μήνας δεν είναι διαθέσιμος",
+      "year": "Έτος",
+      "month": "Μήνας",
+      "legend_aria": "Υπόμνημα ποιότητας μέτρησης",
+      "chart_aria": "Γράφημα ημερήσιας κατανάλωσης νερού",
+      "date": "Ημερομηνία",
+      "consumption": "Κατανάλωση",
+      "quality": "Ποιότητα",
+      "span": "Διάστημα",
+      "meter_total": "Σύνολο μετρητή",
+      "no_snapshots": "Δεν υπάρχουν ακόμη αποθηκευμένα ημερήσια στιγμιότυπα.",
+      "estimate_spread": "κατανομή {count} ημερών",
+      "expecting_at_noon": "Αναμένεται στις 12:00"
+    },
+    "quality": {
+      "exact": "Ακριβής",
+      "estimated": "Εκτιμώμενη",
+      "expected": "Αναμενόμενη",
+      "missing": "Λείπει",
+      "reset": "Επαναφορά",
+      "partial": "Μερική"
+    },
+    "months": [
+      "Ιανουάριος",
+      "Φεβρουάριος",
+      "Μάρτιος",
+      "Απρίλιος",
+      "Μάιος",
+      "Ιούνιος",
+      "Ιούλιος",
+      "Αύγουστος",
+      "Σεπτέμβριος",
+      "Οκτώβριος",
+      "Νοέμβριος",
+      "Δεκέμβριος"
+    ]
+  }
+}

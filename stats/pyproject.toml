@@ -20,6 +20,7 @@ aquaguard-stats = "aquaguard_stats.web:main"
 
 [tool.setuptools.package-data]
 aquaguard_stats = [
+  "translations.json",
   "static/*.css",
   "static/*.svg",
   "templates/*.html",

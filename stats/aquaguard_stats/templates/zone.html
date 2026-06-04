@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ language }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Zone {{ zone_id }} - AquaGuard Stats</title>
+    <title>{{ t("zone.page_title", number=zone_id) }}</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
   </head>
@@ -11,15 +11,31 @@
     <main class="shell">
       <header class="topbar">
         <div>
-          <a class="back-link" href="/">Back to dashboard</a>
-          <p class="eyebrow">Zone {{ zone_id }}</p>
-          <h1>{{ zone.live.zone_name if zone else "Zone " ~ zone_id }}</h1>
+          <a class="back-link" href="{{ localized_url('/') }}">{{ t("zone.back_to_dashboard") }}</a>
+          <p class="eyebrow">{{ t("zone.zone_number", number=zone_id) }}</p>
+          <h1>{{ zone.live.zone_name if zone else t("zone.zone_number", number=zone_id) }}</h1>
         </div>
-        {% if zone %}
-          <div class="status status-{{ zone.status_level }}">
-            {{ zone.status_label }}
-          </div>
-        {% endif %}
+        <div class="topbar-actions">
+          <nav class="language-switcher" aria-label="{{ t('language.selector') }}">
+            <a
+              class="language-button {{ 'active' if language == 'en' else '' }}"
+              href="{{ language_url('en') }}"
+              title="{{ t('language.switch_to_english') }}"
+              aria-label="{{ t('language.switch_to_english') }}"
+            >🇬🇧</a>
+            <a
+              class="language-button {{ 'active' if language == 'el' else '' }}"
+              href="{{ language_url('el') }}"
+              title="{{ t('language.switch_to_greek') }}"
+              aria-label="{{ t('language.switch_to_greek') }}"
+            >🇬🇷</a>
+          </nav>
+          {% if zone %}
+            <div class="status status-{{ zone.status_level }}">
+              {{ t("status.label." ~ status_label_key(zone.status_label)) }}
+            </div>
+          {% endif %}
+        </div>
       </header>
 
       {% if summary.error %}
@@ -30,10 +46,10 @@
             <path d="M10.2 4.6 2.8 18a2 2 0 0 0 1.8 3h14.8a2 2 0 0 0 1.8-3L13.8 4.6a2 2 0 0 0-3.6 0Z"/>
           </svg>
           <div>
-            <strong>AquaGuard is offline.</strong>
-            <span>Showing stored history where available.</span>
+            <strong>{{ t("notice.offline_title") }}</strong>
+            <span>{{ t("notice.zone_offline_body") }}</span>
           </div>
-          <button class="notice-detail" type="button" title="{{ summary.error }}" aria-label="Show technical error details">i</button>
+          <button class="notice-detail" type="button" title="{{ summary.error }}" aria-label="{{ t('notice.technical_details') }}">i</button>
         </section>
       {% endif %}
 
@@ -48,11 +64,11 @@
                 </svg>
               </span>
               <div>
-                <p class="eyebrow">Current period</p>
-                <h2 id="zone-period-heading">Zone period usage</h2>
+                <p class="eyebrow">{{ t("zone.current_period") }}</p>
+                <h2 id="zone-period-heading">{{ t("zone.zone_period_usage") }}</h2>
               </div>
             </div>
-            <span>{{ zone.status_label }}</span>
+            <span>{{ t("status.label." ~ status_label_key(zone.status_label)) }}</span>
           </div>
 
           <div class="summary-grid">
@@ -64,9 +80,9 @@
                   <path d="M12 16V5"/>
                   <path d="M17 16v-4"/>
                 </svg>
-                Period use
+                {{ t("zone.period_use") }}
               </span>
-              <strong>{{ "%.0f"|format(zone.live.period_consumption_l) }} L</strong>
+              <strong>{{ "%.0f"|format(zone.live.period_consumption_l) }} {{ t("common.liters") }}</strong>
             </div>
             <div class="metric">
               <span>
@@ -75,13 +91,13 @@
                   <path d="M5 12h14"/>
                   <path d="M7 7h10v10H7z"/>
                 </svg>
-                Period limit
+                {{ t("zone.period_limit") }}
               </span>
               <strong>
                 {% if zone.live.period_limit_active and zone.live.period_limit_l > 0 %}
-                  {{ "%.0f"|format(zone.live.period_limit_l) }} L
+                  {{ "%.0f"|format(zone.live.period_limit_l) }} {{ t("common.liters") }}
                 {% else %}
-                  Not set
+                  {{ t("common.not_set") }}
                 {% endif %}
               </strong>
             </div>
@@ -90,13 +106,13 @@
                 <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M4 12h3l2-5 4 10 2-5h5"/>
                 </svg>
-                Flow rate 60s
+                {{ t("zone.flow_rate_60s") }}
               </span>
               <strong>
                 {% if zone.live.flow_rate_l_min is not none %}
-                  {{ "%.2f"|format(zone.live.flow_rate_l_min) }} L/min
+                  {{ "%.2f"|format(zone.live.flow_rate_l_min) }} {{ t("common.liters_per_minute") }}
                 {% else %}
-                  -
+                  {{ t("common.dash") }}
                 {% endif %}
               </strong>
             </div>
@@ -104,12 +120,12 @@
 
           <div class="progress-panel">
             <div class="progress-label">
-              <span>Zone period utilization</span>
+              <span>{{ t("zone.zone_period_utilization") }}</span>
               <strong>
                 {% if zone.utilization_percent is not none %}
                   {{ "%.1f"|format(zone.utilization_percent) }}%
                 {% else %}
-                  No active limit
+                  {{ t("status.label.no_active_limit") }}
                 {% endif %}
               </strong>
             </div>
@@ -135,15 +151,23 @@
               </svg>
             </span>
             <div>
-              <p class="eyebrow">History</p>
-              <h2 id="daily-consumption-heading">Daily consumption</h2>
+              <p class="eyebrow">{{ t("zone.history") }}</p>
+              <h2 id="daily-consumption-heading">{{ t("zone.daily_consumption") }}</h2>
             </div>
           </div>
-          <span>{{ history_range.label }} · {{ points | length }} days</span>
+          <span>
+            {% if history_range.is_monthly %}
+              {{ month_names[history_range.selected_month - 1] }} {{ history_range.selected_year }}
+            {% else %}
+              {{ t("history.last_30_days") }}
+            {% endif %}
+            · {{ t("common.days", count=points | length) }}
+          </span>
         </div>
 
         <form class="history-controls" method="get" action="/zones/{{ zone_id }}">
-          <div class="range-toggle" role="radiogroup" aria-label="History range">
+          <input type="hidden" name="lang" value="{{ language }}">
+          <div class="range-toggle" role="radiogroup" aria-label="{{ t('history.range_aria') }}">
             <label class="{{ 'active' if not history_range.is_monthly else '' }}">
               <input
                 type="radio"
@@ -152,7 +176,7 @@
                 {% if not history_range.is_monthly %}checked{% endif %}
                 onchange="this.form.submit()"
               >
-              Last 30 days
+              {{ t("history.last_30_days") }}
             </label>
             <label class="{{ 'active' if history_range.is_monthly else '' }}">
               <input
@@ -162,7 +186,7 @@
                 {% if history_range.is_monthly %}checked{% endif %}
                 onchange="this.form.submit()"
               >
-              Monthly
+              {{ t("history.monthly") }}
             </label>
           </div>
 
@@ -170,17 +194,17 @@
             {% if history_range.previous_month %}
               <a
                 class="month-nav-button"
-                href="/zones/{{ zone_id }}?range=monthly&year={{ history_range.previous_month.year }}&month={{ history_range.previous_month.month }}"
-                aria-label="Previous month"
-                title="Previous month"
+                href="{{ localized_url('/zones/' ~ zone_id ~ '?range=monthly&year=' ~ history_range.previous_month.year ~ '&month=' ~ history_range.previous_month.month) }}"
+                aria-label="{{ t('history.previous_month') }}"
+                title="{{ t('history.previous_month') }}"
               >
                 &larr;
               </a>
             {% else %}
-              <span class="month-nav-button disabled" aria-label="Previous month unavailable" title="Previous month unavailable">&larr;</span>
+              <span class="month-nav-button disabled" aria-label="{{ t('history.previous_month_unavailable') }}" title="{{ t('history.previous_month_unavailable') }}">&larr;</span>
             {% endif %}
             <label>
-              <span>Year</span>
+              <span>{{ t("history.year") }}</span>
               <select name="year" onchange="this.form.range.value='monthly'; this.form.submit()">
                 {% for available_month in history_range.available_months %}
                   {% if loop.changed(available_month.year) %}
@@ -195,7 +219,7 @@
               </select>
             </label>
             <label>
-              <span>Month</span>
+              <span>{{ t("history.month") }}</span>
               <select name="month" onchange="this.form.range.value='monthly'; this.form.submit()">
                 {% for month_name in month_names %}
                   {% set month_number = loop.index %}
@@ -216,29 +240,29 @@
             {% if history_range.next_month %}
               <a
                 class="month-nav-button"
-                href="/zones/{{ zone_id }}?range=monthly&year={{ history_range.next_month.year }}&month={{ history_range.next_month.month }}"
-                aria-label="Next month"
-                title="Next month"
+                href="{{ localized_url('/zones/' ~ zone_id ~ '?range=monthly&year=' ~ history_range.next_month.year ~ '&month=' ~ history_range.next_month.month) }}"
+                aria-label="{{ t('history.next_month') }}"
+                title="{{ t('history.next_month') }}"
               >
                 &rarr;
               </a>
             {% else %}
-              <span class="month-nav-button disabled" aria-label="Next month unavailable" title="Next month unavailable">&rarr;</span>
+              <span class="month-nav-button disabled" aria-label="{{ t('history.next_month_unavailable') }}" title="{{ t('history.next_month_unavailable') }}">&rarr;</span>
             {% endif %}
           </div>
         </form>
 
         <div class="chart-panel">
           {% if points %}
-            <div class="chart-legend" aria-label="Measurement quality legend">
-              <span><i class="legend-swatch quality-exact"></i>Exact</span>
-              <span><i class="legend-swatch quality-estimated"></i>Estimated</span>
-              <span><i class="legend-swatch quality-expected"></i>Expected</span>
-              <span><i class="legend-swatch quality-missing"></i>Missing</span>
-              <span><i class="legend-swatch quality-reset"></i>Reset</span>
-              <span><i class="legend-swatch quality-partial"></i>Partial</span>
+            <div class="chart-legend" aria-label="{{ t('history.legend_aria') }}">
+              <span><i class="legend-swatch quality-exact"></i>{{ t("quality.exact") }}</span>
+              <span><i class="legend-swatch quality-estimated"></i>{{ t("quality.estimated") }}</span>
+              <span><i class="legend-swatch quality-expected"></i>{{ t("quality.expected") }}</span>
+              <span><i class="legend-swatch quality-missing"></i>{{ t("quality.missing") }}</span>
+              <span><i class="legend-swatch quality-reset"></i>{{ t("quality.reset") }}</span>
+              <span><i class="legend-swatch quality-partial"></i>{{ t("quality.partial") }}</span>
             </div>
-            <div class="chart" role="img" aria-label="Daily water consumption chart">
+            <div class="chart" role="img" aria-label="{{ t('history.chart_aria') }}">
               {% set max_value = ([1] + points | map(attribute='daily_consumption_l') | reject('none') | list) | max %}
               {% for point in points %}
                 {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
@@ -247,7 +271,7 @@
                   <div
                     class="bar quality-{{ quality }}"
                     style="height: {{ [height, 100] | min }}%"
-                    title="{{ point.snapshot_date.isoformat() }}: {% if quality == 'estimated' %}Estimated{% if point.estimate_span_days %}, {{ point.estimate_span_days }}-day spread{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'exact' %}Exact: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'reset' %}Reset, 0 L{% elif quality == 'expected' %}Expecting at 12:00{% elif quality == 'missing' %}Missing{% else %}Partial{% endif %}"
+                    title="{{ point.snapshot_date.isoformat() }}: {% if quality == 'estimated' %}{{ t('quality.estimated') }}{% if point.estimate_span_days %}, {{ t('history.estimate_spread', count=point.estimate_span_days) }}{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'exact' %}{{ t('quality.exact') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'reset' %}{{ t('quality.reset') }}, 0 {{ t('common.liters') }}{% elif quality == 'expected' %}{{ t('history.expecting_at_noon') }}{% elif quality == 'missing' %}{{ t('quality.missing') }}{% else %}{{ t('quality.partial') }}{% endif %}"
                   ></div>
                   <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
                 </div>
@@ -256,11 +280,11 @@
             <table class="history-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Consumption</th>
-                  <th>Quality</th>
-                  <th>Span</th>
-                  <th>Meter total</th>
+                  <th>{{ t("history.date") }}</th>
+                  <th>{{ t("history.consumption") }}</th>
+                  <th>{{ t("history.quality") }}</th>
+                  <th>{{ t("history.span") }}</th>
+                  <th>{{ t("history.meter_total") }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -270,40 +294,32 @@
                     <td>{{ point.snapshot_date.isoformat() }}</td>
                     <td class="numeric-cell">
                       {% if point.daily_consumption_l is none %}
-                        -
+                        {{ t("common.dash") }}
                       {% else %}
-                        {{ "%.0f"|format(point.daily_consumption_l) }} L
+                        {{ "%.0f"|format(point.daily_consumption_l) }} {{ t("common.liters") }}
                       {% endif %}
                     </td>
                     <td>
                       <span class="quality-badge quality-badge-{{ quality }}">
-                        {% if quality == 'estimated' %}
-                          Estimated
-                        {% elif quality == 'exact' %}
-                          Exact
-                        {% elif quality == 'reset' %}
-                          Reset
-                        {% elif quality == 'expected' %}
-                          Expecting at 12:00
-                        {% elif quality == 'missing' %}
-                          Missing
+                        {% if quality == 'expected' %}
+                          {{ t("history.expecting_at_noon") }}
                         {% else %}
-                          Partial
+                          {{ t("quality." ~ quality) }}
                         {% endif %}
                       </span>
                     </td>
                     <td>
                       {% if point.estimate_span_days %}
-                        {{ point.estimate_span_days }} days
+                        {{ t("common.days", count=point.estimate_span_days) }}
                       {% else %}
-                        -
+                        {{ t("common.dash") }}
                       {% endif %}
                     </td>
                     <td>
                       {% if point.meter_consumption_l is none %}
-                        -
+                        {{ t("common.dash") }}
                       {% else %}
-                        {{ "%.0f"|format(point.meter_consumption_l) }} L
+                        {{ "%.0f"|format(point.meter_consumption_l) }} {{ t("common.liters") }}
                       {% endif %}
                     </td>
                   </tr>
@@ -311,7 +327,7 @@
               </tbody>
             </table>
           {% else %}
-            <div class="empty-state">No daily snapshots stored yet.</div>
+            <div class="empty-state">{{ t("history.no_snapshots") }}</div>
           {% endif %}
         </div>
       </section>

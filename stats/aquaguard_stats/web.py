@@ -12,6 +12,15 @@ from fastapi.templating import Jinja2Templates
 
 from .config import load_settings
 from .esphome_client import ESPHomeZoneReader
+from .i18n import (
+    LANGUAGE_COOKIE,
+    SUPPORTED_LANGUAGES,
+    language_url,
+    load_translator,
+    localized_url,
+    resolve_language,
+    status_label_key,
+)
 from .models import ZONE_COUNT
 from .repository import SnapshotRepository
 from .scheduler import NoonSnapshotScheduler
@@ -29,6 +38,7 @@ def create_app() -> FastAPI:
     service = StatsService(settings, repository, ESPHomeZoneReader(settings))
     scheduler = NoonSnapshotScheduler(service)
     templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
+    translator = load_translator()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -50,15 +60,34 @@ def create_app() -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request):
+        language, should_set_language_cookie = resolve_language(request)
+        t = translator.for_language(language)
         summary = await service.get_dashboard_summary()
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             request,
             "index.html",
             {
+                "language": language,
+                "languages": SUPPORTED_LANGUAGES,
+                "language_url": lambda target_language: language_url(
+                    request,
+                    target_language,
+                ),
+                "localized_url": lambda path: localized_url(path, language),
                 "summary": summary,
+                "status_label_key": status_label_key,
+                "t": t,
                 "warning_threshold": int(settings.warning_threshold * 100),
             },
         )
+        if should_set_language_cookie:
+            response.set_cookie(
+                LANGUAGE_COOKIE,
+                language,
+                max_age=60 * 60 * 24 * 365,
+                samesite="lax",
+            )
+        return response
 
     @app.get("/zones/{zone_id}", response_class=HTMLResponse)
     async def zone_detail(
@@ -70,6 +99,8 @@ def create_app() -> FastAPI:
     ):
         if zone_id < 1 or zone_id > ZONE_COUNT:
             raise HTTPException(status_code=404, detail="Zone not found")
+        language, should_set_language_cookie = resolve_language(request)
+        t = translator.for_language(language)
         summary = await service.get_dashboard_summary()
         zone = next(
             (candidate for candidate in summary.zones if candidate.live.zone_id == zone_id),
@@ -85,29 +116,25 @@ def create_app() -> FastAPI:
             zone_id=zone_id,
             history_range=history_range,
         )
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             request,
             "zone.html",
             {
+                "language": language,
+                "languages": SUPPORTED_LANGUAGES,
+                "language_url": lambda target_language: language_url(
+                    request,
+                    target_language,
+                ),
+                "localized_url": lambda path: localized_url(path, language),
                 "summary": summary,
                 "zone": zone,
                 "zone_id": zone_id,
                 "points": points,
                 "history_range": history_range,
-                "month_names": [
-                    "January",
-                    "February",
-                    "March",
-                    "April",
-                    "May",
-                    "June",
-                    "July",
-                    "August",
-                    "September",
-                    "October",
-                    "November",
-                    "December",
-                ],
+                "month_names": translator.month_names(language),
+                "status_label_key": status_label_key,
+                "t": t,
                 "chart_points": [
                     {
                         "date": point.snapshot_date.isoformat(),
@@ -121,6 +148,14 @@ def create_app() -> FastAPI:
                 ],
             },
         )
+        if should_set_language_cookie:
+            response.set_cookie(
+                LANGUAGE_COOKIE,
+                language,
+                max_age=60 * 60 * 24 * 365,
+                samesite="lax",
+            )
+        return response
 
     @app.get("/api/dashboard")
     async def api_dashboard():

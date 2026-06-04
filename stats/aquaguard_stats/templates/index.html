@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ language }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AquaGuard Stats</title>
+    <title>{{ t("app.title") }}</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
   </head>
@@ -12,10 +12,26 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">AquaGuard</p>
-          <h1>Water activity</h1>
+          <h1>{{ t("dashboard.title") }}</h1>
         </div>
-        <div class="status status-{{ summary.status_level }}">
-          {{ summary.status_level | title }}
+        <div class="topbar-actions">
+          <nav class="language-switcher" aria-label="{{ t('language.selector') }}">
+            <a
+              class="language-button {{ 'active' if language == 'en' else '' }}"
+              href="{{ language_url('en') }}"
+              title="{{ t('language.switch_to_english') }}"
+              aria-label="{{ t('language.switch_to_english') }}"
+            >🇬🇧</a>
+            <a
+              class="language-button {{ 'active' if language == 'el' else '' }}"
+              href="{{ language_url('el') }}"
+              title="{{ t('language.switch_to_greek') }}"
+              aria-label="{{ t('language.switch_to_greek') }}"
+            >🇬🇷</a>
+          </nav>
+          <div class="status status-{{ summary.status_level }}">
+            {{ t("status.level." ~ summary.status_level) }}
+          </div>
         </div>
       </header>
 
@@ -27,10 +43,10 @@
             <path d="M10.2 4.6 2.8 18a2 2 0 0 0 1.8 3h14.8a2 2 0 0 0 1.8-3L13.8 4.6a2 2 0 0 0-3.6 0Z"/>
           </svg>
           <div>
-            <strong>AquaGuard is offline.</strong>
-            <span>Showing the latest stored snapshot.</span>
+            <strong>{{ t("notice.offline_title") }}</strong>
+            <span>{{ t("notice.dashboard_offline_body") }}</span>
           </div>
-          <button class="notice-detail" type="button" title="{{ summary.error }}" aria-label="Show technical error details">i</button>
+          <button class="notice-detail" type="button" title="{{ summary.error }}" aria-label="{{ t('notice.technical_details') }}">i</button>
         </section>
       {% endif %}
 
@@ -44,11 +60,11 @@
               </svg>
             </span>
             <div>
-              <p class="eyebrow">Overview</p>
-              <h2 id="total-period-heading">Total period usage</h2>
+              <p class="eyebrow">{{ t("dashboard.overview") }}</p>
+              <h2 id="total-period-heading">{{ t("dashboard.total_period_usage") }}</h2>
             </div>
           </div>
-          <span>All active zone limits combined</span>
+          <span>{{ t("dashboard.all_active_limits") }}</span>
         </div>
 
         <div class="summary-grid">
@@ -60,9 +76,9 @@
                 <path d="M12 16V5"/>
                 <path d="M17 16v-4"/>
               </svg>
-              Total period use
+              {{ t("dashboard.total_period_use") }}
             </span>
-            <strong>{{ "%.0f"|format(summary.total_period_consumption_l) }} L</strong>
+            <strong>{{ "%.0f"|format(summary.total_period_consumption_l) }} {{ t("common.liters") }}</strong>
           </div>
           <div class="metric">
             <span>
@@ -71,13 +87,13 @@
                 <path d="M5 12h14"/>
                 <path d="M7 7h10v10H7z"/>
               </svg>
-              Active period limit
+              {{ t("dashboard.active_period_limit") }}
             </span>
             <strong>
               {% if summary.total_active_period_limit_l > 0 %}
-                {{ "%.0f"|format(summary.total_active_period_limit_l) }} L
+                {{ "%.0f"|format(summary.total_active_period_limit_l) }} {{ t("common.liters") }}
               {% else %}
-                Not set
+                {{ t("common.not_set") }}
               {% endif %}
             </strong>
           </div>
@@ -88,7 +104,7 @@
                 <path d="M12 17h.01"/>
                 <path d="M10.2 4.6 2.8 18a2 2 0 0 0 1.8 3h14.8a2 2 0 0 0 1.8-3L13.8 4.6a2 2 0 0 0-3.6 0Z"/>
               </svg>
-              Warning threshold
+              {{ t("dashboard.warning_threshold") }}
             </span>
             <strong>{{ warning_threshold }}%</strong>
           </div>
@@ -96,12 +112,12 @@
 
         <div class="progress-panel">
           <div class="progress-label">
-            <span>Period utilization</span>
+            <span>{{ t("dashboard.period_utilization") }}</span>
             <strong>
               {% if summary.utilization_percent is not none %}
                 {{ "%.1f"|format(summary.utilization_percent) }}%
               {% else %}
-                No active limit
+                {{ t("status.label.no_active_limit") }}
               {% endif %}
             </strong>
           </div>
@@ -127,44 +143,44 @@
               </svg>
             </span>
             <div>
-              <p class="eyebrow">Zones</p>
-              <h2 id="zone-activity-heading">Zone activity</h2>
+              <p class="eyebrow">{{ t("dashboard.zones") }}</p>
+              <h2 id="zone-activity-heading">{{ t("dashboard.zone_activity") }}</h2>
             </div>
           </div>
-          <span>{{ summary.zones | length }} monitored zones</span>
+          <span>{{ t("dashboard.monitored_zones", count=summary.zones | length) }}</span>
         </div>
 
-        <div class="zone-list" aria-label="Zones">
+        <div class="zone-list" aria-label="{{ t('dashboard.zones_aria') }}">
           {% for zone_state in summary.zones %}
             {% set zone = zone_state.live %}
-            <a class="zone-row" href="/zones/{{ zone.zone_id }}">
+            <a class="zone-row" href="{{ localized_url('/zones/' ~ zone.zone_id) }}">
               <div class="zone-title">
-                <span class="zone-index">Zone {{ zone.zone_id }}</span>
+                <span class="zone-index">{{ t("dashboard.zone_number", number=zone.zone_id) }}</span>
                 <strong>{{ zone.zone_name }}</strong>
               </div>
               <div class="zone-state {{ 'unknown' if not summary.live_available else 'closed' if zone.effective_stop else 'open' }}">
                 {% if not summary.live_available %}
-                  Unknown
+                  {{ t("status.label.unknown") }}
                 {% else %}
-                  {{ "Stopped" if zone.effective_stop else "Allowed" }}
+                  {{ t("status.label.stopped") if zone.effective_stop else t("status.label.allowed") }}
                 {% endif %}
               </div>
               <div class="zone-values">
-                <span>{{ "%.0f"|format(zone.period_consumption_l) }} L</span>
+                <span>{{ "%.0f"|format(zone.period_consumption_l) }} {{ t("common.liters") }}</span>
                 {% if zone.period_limit_active and zone.period_limit_l > 0 %}
-                  <small>of {{ "%.0f"|format(zone.period_limit_l) }} L</small>
+                  <small>{{ t("dashboard.of_liters", value="%.0f"|format(zone.period_limit_l)) }}</small>
                 {% else %}
-                  <small>No active limit</small>
+                  <small>{{ t("status.label.no_active_limit") }}</small>
                 {% endif %}
               </div>
               <div class="zone-progress">
                 <div class="zone-progress-label">
-                  <span>{{ zone_state.status_label }}</span>
+                  <span>{{ t("status.label." ~ status_label_key(zone_state.status_label)) }}</span>
                   <strong>
                     {% if zone_state.utilization_percent is not none %}
                       {{ "%.1f"|format(zone_state.utilization_percent) }}%
                     {% else %}
-                      -
+                      {{ t("common.dash") }}
                     {% endif %}
                   </strong>
                 </div>
