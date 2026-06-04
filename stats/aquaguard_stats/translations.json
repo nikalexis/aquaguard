@@ -19,7 +19,7 @@
     },
     "status": {
       "level": {
-        "ok": "Ok",
+        "ok": "Online",
         "warning": "Warning",
         "alert": "Alert",
         "offline": "Offline",
@@ -134,7 +134,7 @@
     },
     "status": {
       "level": {
-        "ok": "Εντάξει",
+        "ok": "Σε σύνδεση",
         "warning": "Προειδοποίηση",
         "alert": "Συναγερμός",
         "offline": "Εκτός σύνδεσης",
