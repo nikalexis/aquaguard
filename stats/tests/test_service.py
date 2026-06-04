@@ -2,11 +2,17 @@ import tempfile
 import unittest
 from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from aquaguard_stats.config import Settings
-from aquaguard_stats.models import AvailableMonth, HistoryRange, ZoneDailySnapshot
+from aquaguard_stats.models import (
+    AvailableMonth,
+    DailyConsumptionPoint,
+    HistoryRange,
+    ZoneDailySnapshot,
+)
 from aquaguard_stats.repository import SnapshotRepository
-from aquaguard_stats.service import StatsService
+from aquaguard_stats.service import StatsService, _fill_missing_daily_points
 
 
 class HistoryRangeServiceTests(unittest.TestCase):
@@ -175,3 +181,68 @@ class HistoryRangeServiceTests(unittest.TestCase):
                 [(point.snapshot_date, point.measurement_quality) for point in persisted],
                 [(date(2026, 5, 13), "partial")],
             )
+
+    def test_daily_points_mark_today_expected_before_noon(self):
+        now = datetime(2026, 6, 4, 11, 30, tzinfo=ZoneInfo("Europe/Athens"))
+        points = _fill_missing_daily_points(
+            [
+                DailyConsumptionPoint(
+                    snapshot_date=date(2026, 6, 3),
+                    zone_name="Zone 1",
+                    meter_consumption_l=100,
+                    daily_consumption_l=None,
+                    measurement_quality="partial",
+                )
+            ],
+            date(2026, 6, 3),
+            date(2026, 6, 4),
+            now,
+        )
+
+        self.assertEqual([point.measurement_quality for point in points], [
+            "partial",
+            "expected",
+        ])
+        self.assertFalse(points[1].missing)
+
+    def test_daily_points_mark_today_missing_after_noon(self):
+        now = datetime(2026, 6, 4, 12, 30, tzinfo=ZoneInfo("Europe/Athens"))
+        points = _fill_missing_daily_points(
+            [
+                DailyConsumptionPoint(
+                    snapshot_date=date(2026, 6, 3),
+                    zone_name="Zone 1",
+                    meter_consumption_l=100,
+                    daily_consumption_l=None,
+                    measurement_quality="partial",
+                )
+            ],
+            date(2026, 6, 3),
+            date(2026, 6, 4),
+            now,
+        )
+
+        self.assertEqual([point.measurement_quality for point in points], [
+            "partial",
+            "missing",
+        ])
+        self.assertTrue(points[1].missing)
+
+    def test_daily_points_keep_existing_today_quality(self):
+        now = datetime(2026, 6, 4, 11, 30, tzinfo=ZoneInfo("Europe/Athens"))
+        points = _fill_missing_daily_points(
+            [
+                DailyConsumptionPoint(
+                    snapshot_date=date(2026, 6, 4),
+                    zone_name="Zone 1",
+                    meter_consumption_l=120,
+                    daily_consumption_l=None,
+                    measurement_quality="partial",
+                )
+            ],
+            date(2026, 6, 4),
+            date(2026, 6, 4),
+            now,
+        )
+
+        self.assertEqual([point.measurement_quality for point in points], ["partial"])

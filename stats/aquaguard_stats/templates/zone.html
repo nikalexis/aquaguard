@@ -233,6 +233,7 @@
             <div class="chart-legend" aria-label="Measurement quality legend">
               <span><i class="legend-swatch quality-exact"></i>Exact</span>
               <span><i class="legend-swatch quality-estimated"></i>Estimated</span>
+              <span><i class="legend-swatch quality-expected"></i>Expected</span>
               <span><i class="legend-swatch quality-missing"></i>Missing</span>
               <span><i class="legend-swatch quality-reset"></i>Reset</span>
               <span><i class="legend-swatch quality-partial"></i>Partial</span>
@@ -246,7 +247,7 @@
                   <div
                     class="bar quality-{{ quality }}"
                     style="height: {{ [height, 100] | min }}%"
-                    title="{{ point.snapshot_date.isoformat() }}: {% if quality == 'estimated' %}Estimated{% if point.estimate_span_days %}, {{ point.estimate_span_days }}-day spread{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'exact' %}Exact: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'reset' %}Reset, 0 L{% elif quality == 'missing' %}Missing{% else %}Partial{% endif %}"
+                    title="{{ point.snapshot_date.isoformat() }}: {% if quality == 'estimated' %}Estimated{% if point.estimate_span_days %}, {{ point.estimate_span_days }}-day spread{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'exact' %}Exact: {{ "%.0f"|format(point.daily_consumption_l or 0) }} L{% elif quality == 'reset' %}Reset, 0 L{% elif quality == 'expected' %}Expecting at 12:00{% elif quality == 'missing' %}Missing{% else %}Partial{% endif %}"
                   ></div>
                   <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
                 </div>
@@ -282,6 +283,8 @@
                           Exact
                         {% elif quality == 'reset' %}
                           Reset
+                        {% elif quality == 'expected' %}
+                          Expecting at 12:00
                         {% elif quality == 'missing' %}
                           Missing
                         {% else %}

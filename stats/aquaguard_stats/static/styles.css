@@ -529,6 +529,17 @@ h2 {
   background: linear-gradient(180deg, #e6b447, var(--estimate));
 }
 
+.quality-expected {
+  border: 1px dashed rgb(22 125 143 / 42%);
+  background: repeating-linear-gradient(
+    135deg,
+    rgb(22 125 143 / 16%),
+    rgb(22 125 143 / 16%) 5px,
+    rgb(22 125 143 / 6%) 5px,
+    rgb(22 125 143 / 6%) 10px
+  );
+}
+
 .quality-partial {
   background: repeating-linear-gradient(
     135deg,
@@ -554,6 +565,10 @@ h2 {
 
 .bar.quality-missing {
   min-height: 0;
+}
+
+.bar.quality-expected {
+  min-height: 6px;
 }
 
 .bar-wrap span {
@@ -608,6 +623,13 @@ h2 {
   border-color: rgb(194 138 23 / 34%);
   background: rgb(194 138 23 / 12%);
   color: #8a5b08;
+}
+
+.quality-badge-expected {
+  border-style: dashed;
+  border-color: rgb(22 125 143 / 34%);
+  background: rgb(22 125 143 / 9%);
+  color: var(--water-strong);
 }
 
 .quality-badge-missing {

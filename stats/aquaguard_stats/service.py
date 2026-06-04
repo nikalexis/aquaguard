@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from calendar import monthrange
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 
 from .config import Settings
 from .esphome_client import AquaGuardAPIError, ESPHomeZoneReader
@@ -83,7 +83,12 @@ class StatsService:
             start_date=start_date,
             end_date=end_date,
         )
-        return _fill_missing_daily_points(points, start_date, end_date)
+        return _fill_missing_daily_points(
+            points,
+            start_date,
+            end_date,
+            datetime.now(self.settings.zoneinfo),
+        )
 
     def resolve_history_range(
         self,
@@ -171,6 +176,7 @@ class StatsService:
             points,
             history_range.start_date,
             history_range.end_date,
+            datetime.now(self.settings.zoneinfo),
         )
 
     def _recalculate_daily_measurements(self, zone_ids: set[int]) -> None:
@@ -211,6 +217,7 @@ def _fill_missing_daily_points(
     points: list[DailyConsumptionPoint],
     start_date: date,
     end_date: date,
+    now: datetime,
 ) -> list[DailyConsumptionPoint]:
     if not points:
         return []
@@ -228,16 +235,23 @@ def _fill_missing_daily_points(
     while current <= end_date:
         point = points_by_date.get(current)
         if point is None:
+            quality = _synthetic_quality_for_date(current, now)
             point = DailyConsumptionPoint(
                 snapshot_date=current,
                 zone_name=zone_name,
                 meter_consumption_l=None,
                 daily_consumption_l=None,
-                measurement_quality="missing",
+                measurement_quality=quality,
                 partial=False,
-                missing=True,
+                missing=quality == "missing",
                 estimate_span_days=None,
             )
         filled_points.append(point)
         current += timedelta(days=1)
     return filled_points
+
+
+def _synthetic_quality_for_date(snapshot_date: date, now: datetime) -> str:
+    if snapshot_date == now.date() and now.time() < time(hour=12):
+        return "expected"
+    return "missing"
