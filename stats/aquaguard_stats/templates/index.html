@@ -41,6 +41,39 @@
             </nav>
           </details>
           <div class="status status-{{ summary.status_level }}">
+            <span class="status-icon" aria-hidden="true">
+              {% if summary.status_level == "ok" %}
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 6 9 17l-5-5"/>
+                </svg>
+              {% elif summary.status_level == "warning" %}
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 8v5"/>
+                  <path d="M12 17h.01"/>
+                  <path d="M10.2 4.6 2.8 18a2 2 0 0 0 1.8 3h14.8a2 2 0 0 0 1.8-3L13.8 4.6a2 2 0 0 0-3.6 0Z"/>
+                </svg>
+              {% elif summary.status_level == "alert" %}
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 9v4"/>
+                  <path d="M12 17h.01"/>
+                  <circle cx="12" cy="12" r="9"/>
+                </svg>
+              {% elif summary.status_level == "offline" %}
+                <svg viewBox="0 0 24 24">
+                  <path d="m2 2 20 20"/>
+                  <path d="M8.5 16.5a5 5 0 0 1 7 0"/>
+                  <path d="M5 13a9 9 0 0 1 4.7-2.4"/>
+                  <path d="M14.3 10.6A9 9 0 0 1 19 13"/>
+                  <path d="M2 9a13 13 0 0 1 4.5-2.7"/>
+                  <path d="M12.5 5.1A13 13 0 0 1 22 9"/>
+                </svg>
+              {% else %}
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M8 12h8"/>
+                </svg>
+              {% endif %}
+            </span>
             {{ t("status.level." ~ summary.status_level) }}
           </div>
         </div>
