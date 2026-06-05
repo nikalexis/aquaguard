@@ -26,7 +26,7 @@
         "inactive": "Inactive"
       },
       "label": {
-        "ok": "Ok",
+        "ok": "Within limit",
         "limit_reached": "Limit reached",
         "near_limit": "Near limit",
         "no_active_limit": "No active limit",
@@ -143,7 +143,7 @@
         "inactive": "Ανενεργό"
       },
       "label": {
-        "ok": "Εντάξει",
+        "ok": "Εντός ορίου",
         "limit_reached": "Το όριο επιτεύχθηκε",
         "near_limit": "Κοντά στο όριο",
         "no_active_limit": "Χωρίς ενεργό όριο",
