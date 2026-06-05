@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from datetime import date, datetime
 from pathlib import Path
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from aquaguard_stats.config import Settings
@@ -10,6 +11,7 @@ from aquaguard_stats.models import (
     DailyConsumptionPoint,
     HistoryRange,
     ZoneDailySnapshot,
+    ZoneLiveState,
 )
 from aquaguard_stats.repository import SnapshotRepository
 from aquaguard_stats.service import StatsService, _fill_missing_daily_points
@@ -246,3 +248,231 @@ class HistoryRangeServiceTests(unittest.TestCase):
         )
 
         self.assertEqual([point.measurement_quality for point in points], ["partial"])
+
+    def test_daily_points_add_current_before_noon_from_previous_snapshot(self):
+        temp_dir, _settings, service = self.make_service()
+        with temp_dir:
+            service.repository.upsert_snapshots([
+                ZoneDailySnapshot(
+                    snapshot_date=date(2026, 6, 3),
+                    snapshot_at=datetime(2026, 6, 3, 12),
+                    zone_id=1,
+                    zone_name="Zone 1",
+                    meter_consumption_l=100,
+                    period_baseline_l=0,
+                    period_consumption_l=100,
+                    period_limit_l=200,
+                    period_limit_active=True,
+                )
+            ])
+            history_range = _history_range(date(2026, 6, 3), date(2026, 6, 4))
+            live_zone = _live_zone(meter_consumption_l=118)
+
+            with _fixed_now(datetime(2026, 6, 4, 11, 30, tzinfo=ZoneInfo("Europe/Athens"))):
+                points = service.get_zone_daily_points_for_range(
+                    1,
+                    history_range,
+                    live_zone=live_zone,
+                    live_available=True,
+                )
+
+            self.assertEqual(points[-1].snapshot_date, date(2026, 6, 4))
+            self.assertEqual(points[-1].measurement_quality, "current")
+            self.assertEqual(points[-1].daily_consumption_l, 18)
+            self.assertEqual(points[-1].meter_consumption_l, 118)
+
+    def test_daily_points_add_tomorrow_current_after_noon_and_keep_today_snapshot(self):
+        temp_dir, _settings, service = self.make_service()
+        with temp_dir:
+            service.repository.upsert_snapshots([
+                ZoneDailySnapshot(
+                    snapshot_date=date(2026, 6, 3),
+                    snapshot_at=datetime(2026, 6, 3, 12),
+                    zone_id=1,
+                    zone_name="Zone 1",
+                    meter_consumption_l=100,
+                    period_baseline_l=0,
+                    period_consumption_l=100,
+                    period_limit_l=200,
+                    period_limit_active=True,
+                ),
+                ZoneDailySnapshot(
+                    snapshot_date=date(2026, 6, 4),
+                    snapshot_at=datetime(2026, 6, 4, 12),
+                    zone_id=1,
+                    zone_name="Zone 1",
+                    meter_consumption_l=120,
+                    period_baseline_l=0,
+                    period_consumption_l=120,
+                    period_limit_l=200,
+                    period_limit_active=True,
+                ),
+            ])
+            service._recalculate_daily_measurements({1})
+            history_range = _history_range(date(2026, 6, 3), date(2026, 6, 4))
+            live_zone = _live_zone(meter_consumption_l=127)
+
+            with _fixed_now(datetime(2026, 6, 4, 12, 30, tzinfo=ZoneInfo("Europe/Athens"))):
+                points = service.get_zone_daily_points_for_range(
+                    1,
+                    history_range,
+                    live_zone=live_zone,
+                    live_available=True,
+                )
+
+            self.assertEqual([point.snapshot_date for point in points], [
+                date(2026, 6, 3),
+                date(2026, 6, 4),
+                date(2026, 6, 5),
+            ])
+            self.assertEqual(points[1].measurement_quality, "exact")
+            self.assertEqual(points[1].daily_consumption_l, 20)
+            self.assertEqual(points[2].measurement_quality, "current")
+            self.assertEqual(points[2].daily_consumption_l, 7)
+
+    def test_daily_points_do_not_add_after_noon_current_without_today_baseline(self):
+        temp_dir, _settings, service = self.make_service()
+        with temp_dir:
+            service.repository.upsert_snapshots([
+                ZoneDailySnapshot(
+                    snapshot_date=date(2026, 6, 3),
+                    snapshot_at=datetime(2026, 6, 3, 12),
+                    zone_id=1,
+                    zone_name="Zone 1",
+                    meter_consumption_l=100,
+                    period_baseline_l=0,
+                    period_consumption_l=100,
+                    period_limit_l=200,
+                    period_limit_active=True,
+                )
+            ])
+            history_range = _history_range(date(2026, 6, 3), date(2026, 6, 4))
+            live_zone = _live_zone(meter_consumption_l=127)
+
+            with _fixed_now(datetime(2026, 6, 4, 12, 30, tzinfo=ZoneInfo("Europe/Athens"))):
+                points = service.get_zone_daily_points_for_range(
+                    1,
+                    history_range,
+                    live_zone=live_zone,
+                    live_available=True,
+                )
+
+            self.assertEqual([point.snapshot_date for point in points], [
+                date(2026, 6, 3),
+                date(2026, 6, 4),
+                date(2026, 6, 5),
+            ])
+            self.assertEqual(points[1].measurement_quality, "missing")
+            self.assertEqual(points[2].measurement_quality, "expected")
+            self.assertIsNone(points[2].daily_consumption_l)
+
+    def test_daily_points_add_offline_synthetic_point(self):
+        temp_dir, _settings, service = self.make_service()
+        with temp_dir:
+            service.repository.upsert_snapshots([
+                ZoneDailySnapshot(
+                    snapshot_date=date(2026, 6, 3),
+                    snapshot_at=datetime(2026, 6, 3, 12),
+                    zone_id=1,
+                    zone_name="Zone 1",
+                    meter_consumption_l=100,
+                    period_baseline_l=0,
+                    period_consumption_l=100,
+                    period_limit_l=200,
+                    period_limit_active=True,
+                )
+            ])
+            history_range = _history_range(date(2026, 6, 3), date(2026, 6, 4))
+            live_zone = _live_zone(meter_consumption_l=118)
+
+            with _fixed_now(datetime(2026, 6, 4, 11, 30, tzinfo=ZoneInfo("Europe/Athens"))):
+                points = service.get_zone_daily_points_for_range(
+                    1,
+                    history_range,
+                    live_zone=live_zone,
+                    live_available=False,
+                )
+
+            self.assertEqual(points[-1].measurement_quality, "offline")
+            self.assertIsNone(points[-1].daily_consumption_l)
+            self.assertIsNone(points[-1].meter_consumption_l)
+
+    def test_daily_points_use_expected_for_missing_baseline_or_negative_delta(self):
+        temp_dir, _settings, service = self.make_service()
+        with temp_dir:
+            no_baseline_range = _history_range(date(2026, 5, 10), date(2026, 5, 12))
+
+            with _fixed_now(datetime(2026, 5, 12, 11, 30, tzinfo=ZoneInfo("Europe/Athens"))):
+                no_baseline = service.get_zone_daily_points_for_range(
+                    1,
+                    no_baseline_range,
+                    live_zone=_live_zone(meter_consumption_l=118),
+                    live_available=True,
+                )
+
+            negative_delta_range = _history_range(date(2026, 6, 3), date(2026, 6, 4))
+            service.repository.upsert_snapshots([
+                ZoneDailySnapshot(
+                    snapshot_date=date(2026, 6, 3),
+                    snapshot_at=datetime(2026, 6, 3, 12),
+                    zone_id=1,
+                    zone_name="Zone 1",
+                    meter_consumption_l=100,
+                    period_baseline_l=0,
+                    period_consumption_l=100,
+                    period_limit_l=200,
+                    period_limit_active=True,
+                )
+            ])
+            with _fixed_now(datetime(2026, 6, 4, 11, 30, tzinfo=ZoneInfo("Europe/Athens"))):
+                negative_delta = service.get_zone_daily_points_for_range(
+                    1,
+                    negative_delta_range,
+                    live_zone=_live_zone(meter_consumption_l=95),
+                    live_available=True,
+                )
+
+            self.assertEqual(no_baseline[-1].measurement_quality, "expected")
+            self.assertIsNone(no_baseline[-1].daily_consumption_l)
+            self.assertEqual(negative_delta[-1].measurement_quality, "expected")
+            self.assertIsNone(negative_delta[-1].daily_consumption_l)
+
+
+def _history_range(start_date: date, end_date: date) -> HistoryRange:
+    return HistoryRange(
+        mode="last30",
+        start_date=start_date,
+        end_date=end_date,
+        selected_year=end_date.year,
+        selected_month=end_date.month,
+        available_months=[AvailableMonth(end_date.year, end_date.month)],
+        current_year=end_date.year,
+        current_month=end_date.month,
+        first_year=start_date.year,
+        first_month=start_date.month,
+    )
+
+
+def _live_zone(meter_consumption_l: float) -> ZoneLiveState:
+    return ZoneLiveState(
+        zone_id=1,
+        zone_name="Zone 1",
+        meter_consumption_l=meter_consumption_l,
+        period_baseline_l=0,
+        period_consumption_l=meter_consumption_l,
+        period_limit_l=200,
+        period_limit_active=True,
+        effective_stop=False,
+        water_allowed=True,
+        flow_rate_l_min=None,
+        last_pulse_timestamp=None,
+    )
+
+
+def _fixed_now(now: datetime):
+    class FixedDateTime:
+        @classmethod
+        def now(cls, zoneinfo):
+            return now
+
+    return patch("aquaguard_stats.service.datetime", FixedDateTime)

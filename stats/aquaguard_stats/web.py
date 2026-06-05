@@ -115,6 +115,8 @@ def create_app() -> FastAPI:
         points = service.get_zone_daily_points_for_range(
             zone_id=zone_id,
             history_range=history_range,
+            live_zone=zone.live if zone else None,
+            live_available=summary.error is None,
         )
         response = templates.TemplateResponse(
             request,
@@ -170,6 +172,11 @@ def create_app() -> FastAPI:
     ):
         if zone_id < 1 or zone_id > ZONE_COUNT:
             raise HTTPException(status_code=404, detail="Zone not found")
+        summary = await service.get_dashboard_summary()
+        zone = next(
+            (candidate for candidate in summary.zones if candidate.live.zone_id == zone_id),
+            None,
+        )
         history_range = service.resolve_history_range(
             zone_id=zone_id,
             range_mode=range,
@@ -179,6 +186,8 @@ def create_app() -> FastAPI:
         return service.get_zone_daily_points_for_range(
             zone_id=zone_id,
             history_range=history_range,
+            live_zone=zone.live if zone else None,
+            live_available=summary.error is None,
         )
 
     @app.post("/api/snapshots/noon")

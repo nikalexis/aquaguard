@@ -94,7 +94,9 @@
     "quality": {
       "exact": "Exact",
       "estimated": "Estimated",
+      "current": "Current",
       "expected": "Expected",
+      "offline": "Offline",
       "missing": "Missing",
       "reset": "Reset",
       "partial": "Partial"
@@ -209,7 +211,9 @@
     "quality": {
       "exact": "Ακριβής",
       "estimated": "Εκτιμώμενη",
+      "current": "Τρέχων",
       "expected": "Αναμενόμενη",
+      "offline": "Εκτός σύνδεσης",
       "missing": "Λείπει",
       "reset": "Επαναφορά",
       "partial": "Μερική"

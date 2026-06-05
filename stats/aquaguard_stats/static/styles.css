@@ -619,6 +619,11 @@ h2 {
   background: linear-gradient(180deg, #e6b447, var(--estimate));
 }
 
+.quality-current {
+  border: 1px solid rgb(95 127 82 / 28%);
+  background: rgb(95 127 82 / 18%);
+}
+
 .quality-expected {
   border: 1px dashed rgb(22 125 143 / 42%);
   background: repeating-linear-gradient(
@@ -645,6 +650,15 @@ h2 {
 }
 
 .bar.quality-reset {
+  min-height: 6px;
+}
+
+.quality-offline {
+  border: 1px solid rgb(185 60 50 / 28%);
+  background: rgb(185 60 50 / 16%);
+}
+
+.bar.quality-offline {
   min-height: 6px;
 }
 
@@ -715,6 +729,12 @@ h2 {
   color: #8a5b08;
 }
 
+.quality-badge-current {
+  border-color: rgb(95 127 82 / 30%);
+  background: rgb(95 127 82 / 16%);
+  color: var(--field);
+}
+
 .quality-badge-expected {
   border-style: dashed;
   border-color: rgb(22 125 143 / 34%);
@@ -726,6 +746,12 @@ h2 {
   border-style: dashed;
   background: rgb(88 96 106 / 8%);
   color: var(--offline);
+}
+
+.quality-badge-offline {
+  border-color: rgb(185 60 50 / 30%);
+  background: rgb(185 60 50 / 16%);
+  color: var(--alert);
 }
 
 .quality-badge-reset {

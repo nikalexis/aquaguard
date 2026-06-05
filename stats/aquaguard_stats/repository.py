@@ -254,6 +254,27 @@ class SnapshotRepository:
             ).fetchall()
         return [self._row_to_snapshot(row) for row in rows]
 
+    def latest_zone_snapshot_before(
+        self,
+        zone_id: int,
+        snapshot_date: date,
+    ) -> ZoneDailySnapshot | None:
+        with self.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT *
+                FROM zone_daily_snapshots
+                WHERE zone_id = ?
+                  AND snapshot_date < ?
+                  AND has_device_snapshot = 1
+                  AND meter_consumption_l IS NOT NULL
+                ORDER BY snapshot_date DESC
+                LIMIT 1
+                """,
+                (zone_id, snapshot_date.isoformat()),
+            ).fetchone()
+        return None if row is None else self._row_to_snapshot(row)
+
     def list_zone_daily_points_between(
         self,
         zone_id: int,
@@ -364,4 +385,3 @@ class SnapshotRepository:
                 else None
             ),
         )
-

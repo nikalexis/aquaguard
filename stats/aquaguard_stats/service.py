@@ -166,17 +166,48 @@ class StatsService:
         self,
         zone_id: int,
         history_range: HistoryRange,
+        live_zone: ZoneLiveState | None = None,
+        live_available: bool | None = None,
     ):
+        now = datetime.now(self.settings.zoneinfo)
+        start_date = history_range.start_date
+        end_date = history_range.end_date
+        synthetic_date = _current_measurement_date(now)
+        if (
+            live_available is not None
+            and synthetic_date >= start_date
+            and end_date >= now.date()
+        ):
+            end_date = max(end_date, synthetic_date)
+
         points = self.repository.list_zone_daily_points_between(
             zone_id=zone_id,
-            start_date=history_range.start_date,
-            end_date=history_range.end_date,
+            start_date=start_date,
+            end_date=end_date,
         )
-        return _fill_missing_daily_points(
+        filled_points = _fill_missing_daily_points(
             points,
-            history_range.start_date,
-            history_range.end_date,
-            datetime.now(self.settings.zoneinfo),
+            start_date,
+            end_date,
+            now,
+            zone_name=live_zone.zone_name if live_zone else None,
+        )
+        if live_available is None:
+            return filled_points
+        baseline = self.repository.latest_zone_snapshot_before(
+            zone_id=zone_id,
+            snapshot_date=synthetic_date,
+        )
+        if synthetic_date > now.date() and (
+            baseline is None or baseline.snapshot_date != now.date()
+        ):
+            baseline = None
+        return _with_current_synthetic_point(
+            filled_points,
+            synthetic_date=synthetic_date,
+            live_zone=live_zone,
+            live_available=live_available,
+            baseline=baseline,
         )
 
     def _recalculate_daily_measurements(self, zone_ids: set[int]) -> None:
@@ -218,15 +249,16 @@ def _fill_missing_daily_points(
     start_date: date,
     end_date: date,
     now: datetime,
+    zone_name: str | None = None,
 ) -> list[DailyConsumptionPoint]:
-    if not points:
+    if not points and not zone_name:
         return []
 
     points_by_date = {
         point.snapshot_date: point
         for point in points
     }
-    zone_name = next(
+    resolved_zone_name = zone_name or next(
         (point.zone_name for point in reversed(points) if point.zone_name),
         "",
     )
@@ -238,7 +270,7 @@ def _fill_missing_daily_points(
             quality = _synthetic_quality_for_date(current, now)
             point = DailyConsumptionPoint(
                 snapshot_date=current,
-                zone_name=zone_name,
+                zone_name=resolved_zone_name,
                 meter_consumption_l=None,
                 daily_consumption_l=None,
                 measurement_quality=quality,
@@ -255,3 +287,99 @@ def _synthetic_quality_for_date(snapshot_date: date, now: datetime) -> str:
     if snapshot_date == now.date() and now.time() < time(hour=12):
         return "expected"
     return "missing"
+
+
+def _current_measurement_date(now: datetime) -> date:
+    if now.time() < time(hour=12):
+        return now.date()
+    return now.date() + timedelta(days=1)
+
+
+def _with_current_synthetic_point(
+    points: list[DailyConsumptionPoint],
+    synthetic_date: date,
+    live_zone: ZoneLiveState | None,
+    live_available: bool,
+    baseline: ZoneDailySnapshot | None,
+) -> list[DailyConsumptionPoint]:
+    if not points:
+        return points
+
+    point_by_date = {
+        point.snapshot_date: point
+        for point in points
+    }
+    existing = point_by_date.get(synthetic_date)
+    if existing and existing.meter_consumption_l is not None:
+        return points
+
+    point_by_date[synthetic_date] = _current_synthetic_point(
+        synthetic_date=synthetic_date,
+        live_zone=live_zone,
+        live_available=live_available,
+        baseline=baseline,
+        fallback_zone_name=existing.zone_name if existing else "",
+    )
+    return [
+        point_by_date[snapshot_date]
+        for snapshot_date in sorted(point_by_date)
+    ]
+
+
+def _current_synthetic_point(
+    synthetic_date: date,
+    live_zone: ZoneLiveState | None,
+    live_available: bool,
+    baseline: ZoneDailySnapshot | None,
+    fallback_zone_name: str,
+) -> DailyConsumptionPoint:
+    zone_name = (
+        live_zone.zone_name
+        if live_zone is not None
+        else fallback_zone_name
+    )
+    if not live_available:
+        return DailyConsumptionPoint(
+            snapshot_date=synthetic_date,
+            zone_name=zone_name,
+            meter_consumption_l=None,
+            daily_consumption_l=None,
+            measurement_quality="offline",
+            partial=False,
+            missing=False,
+            estimate_span_days=None,
+        )
+
+    if live_zone is None or baseline is None or baseline.meter_consumption_l is None:
+        return _expected_synthetic_point(synthetic_date, zone_name)
+
+    daily_consumption_l = live_zone.meter_consumption_l - baseline.meter_consumption_l
+    if daily_consumption_l < 0:
+        return _expected_synthetic_point(synthetic_date, zone_name)
+
+    return DailyConsumptionPoint(
+        snapshot_date=synthetic_date,
+        zone_name=zone_name,
+        meter_consumption_l=live_zone.meter_consumption_l,
+        daily_consumption_l=daily_consumption_l,
+        measurement_quality="current",
+        partial=False,
+        missing=False,
+        estimate_span_days=None,
+    )
+
+
+def _expected_synthetic_point(
+    synthetic_date: date,
+    zone_name: str,
+) -> DailyConsumptionPoint:
+    return DailyConsumptionPoint(
+        snapshot_date=synthetic_date,
+        zone_name=zone_name,
+        meter_consumption_l=None,
+        daily_consumption_l=None,
+        measurement_quality="expected",
+        partial=False,
+        missing=False,
+        estimate_span_days=None,
+    )
