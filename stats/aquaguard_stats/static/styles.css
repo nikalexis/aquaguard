@@ -790,6 +790,21 @@ h2 {
     justify-content: space-between;
   }
 
+  .language-menu {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .topbar-actions .status {
+    order: 1;
+  }
+
+  .language-options {
+    right: 0;
+    left: auto;
+    max-width: calc(100vw - 20px);
+  }
+
   .section-title {
     align-items: flex-start;
   }
