@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from datetime import timedelta
 from pathlib import Path
 
 import uvicorn
@@ -137,6 +138,9 @@ def create_app() -> FastAPI:
                 "month_names": translator.month_names(language),
                 "status_label_key": status_label_key,
                 "t": t,
+                "previous_date_iso": lambda snapshot_date: (
+                    snapshot_date - timedelta(days=1)
+                ).isoformat(),
                 "chart_points": [
                     {
                         "date": point.snapshot_date.isoformat(),

@@ -324,6 +324,10 @@
               {% endfor %}
             </div>
             <table class="history-table">
+              <caption class="history-table-note">
+                <span class="history-table-note-icon" aria-hidden="true">i</span>
+                <span>{{ t("history.noon_snapshot_legend") }}</span>
+              </caption>
               <thead>
                 <tr>
                   <th>{{ t("history.date") }}</th>
@@ -336,8 +340,21 @@
               <tbody>
                 {% for point in points | reverse %}
                   {% set quality = point.measurement_quality %}
+                  {% set snapshot_date = point.snapshot_date.isoformat() %}
+                  {% set snapshot_datetime = snapshot_date ~ " 12:00" %}
+                  {% set window_start = previous_date_iso(point.snapshot_date) %}
+                  {% set window_text = t("history.noon_snapshot_window", start=window_start, end=snapshot_date) %}
                   <tr>
-                    <td>{{ point.snapshot_date.isoformat() }}</td>
+                    <td>
+                      <span class="date-cell-value">{{ snapshot_datetime }}</span>
+                      <span
+                        class="date-info-icon"
+                        title="{{ window_text }}"
+                        aria-label="{{ window_text }}"
+                        role="img"
+                        tabindex="0"
+                      >i</span>
+                    </td>
                     <td class="numeric-cell">
                       {% if point.daily_consumption_l is none %}
                         {{ t("common.dash") }}

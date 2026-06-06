@@ -8,6 +8,7 @@ from aquaguard_stats.i18n import (
     Translator,
     language_url,
     localized_url,
+    load_translator,
     normalize_language,
     resolve_language,
     status_label_key,
@@ -63,6 +64,22 @@ class I18nTests(unittest.TestCase):
         )
 
         self.assertEqual(translator.for_language("el")("status.ok"), "Ok")
+
+    def test_noon_snapshot_history_translations_resolve(self):
+        translator = load_translator()
+
+        self.assertEqual(
+            translator.for_language("en")(
+                "history.noon_snapshot_window",
+                start="2026-06-03",
+                end="2026-06-04",
+            ),
+            "Measured from 2026-06-03 12:00 to 2026-06-04 12:00",
+        )
+        self.assertIn(
+            "12:00",
+            translator.for_language("el")("history.noon_snapshot_legend"),
+        )
 
     def test_resolve_language_prefers_query_over_cookie(self):
         request = make_request(
