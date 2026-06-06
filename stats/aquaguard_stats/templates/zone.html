@@ -319,7 +319,7 @@
                     style="height: {{ [height, 100] | min }}%"
                     title="{{ point.snapshot_date.isoformat() }}: {% if quality == 'estimated' %}{{ t('quality.estimated') }}{% if point.estimate_span_days %}, {{ t('history.estimate_spread', count=point.estimate_span_days) }}{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'exact' %}{{ t('quality.exact') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'current' %}{{ t('quality.current') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'reset' %}{{ t('quality.reset') }}, 0 {{ t('common.liters') }}{% elif quality == 'expected' %}{{ t('history.expecting_at_noon') }}{% elif quality == 'offline' %}{{ t('quality.offline') }}{% elif quality == 'missing' %}{{ t('quality.missing') }}{% else %}{{ t('quality.partial') }}{% endif %}"
                   ></div>
-                  <span>{{ point.snapshot_date.strftime("%m/%d") }}</span>
+                  <span>{{ point.snapshot_date.day }}/{{ point.snapshot_date.month }}</span>
                 </div>
               {% endfor %}
             </div>
