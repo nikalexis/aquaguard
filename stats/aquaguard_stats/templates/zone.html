@@ -323,94 +323,96 @@
                 </div>
               {% endfor %}
             </div>
-            <table class="history-table">
-              <caption class="history-table-note">
-                <span class="date-range-icon history-table-note-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <rect x="3" y="5" width="7" height="8" rx="1.5"/>
-                    <rect x="14" y="11" width="7" height="8" rx="1.5"/>
-                    <path d="M8.5 16h6"/>
-                    <path d="m12.5 14 2 2-2 2"/>
-                    <path d="M5 3v3"/>
-                    <path d="M8 3v3"/>
-                    <path d="M16 9v3"/>
-                    <path d="M19 9v3"/>
-                  </svg>
-                </span>
-                <span>{{ t("history.noon_snapshot_legend") }}</span>
-              </caption>
-              <thead>
-                <tr>
-                  <th>{{ t("history.date") }}</th>
-                  <th>{{ t("history.consumption") }}</th>
-                  <th>{{ t("history.quality") }}</th>
-                  <th>{{ t("history.span") }}</th>
-                  <th>{{ t("history.meter_total") }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for point in points | reverse %}
-                  {% set quality = point.measurement_quality %}
-                  {% set snapshot_date = point.snapshot_date.isoformat() %}
-                  {% set snapshot_datetime = snapshot_date ~ " 12:00" %}
-                  {% set window_start = previous_date_iso(point.snapshot_date) %}
-                  {% set window_text = t("history.noon_snapshot_window", start=window_start, end=snapshot_date) %}
-                  <tr class="{{ 'history-row-provisional' if quality in ['current', 'expected', 'offline'] else '' }}">
-                    <td>
-                      <span class="date-cell-value">{{ snapshot_datetime }}</span>
-                      <span
-                        class="date-range-icon date-info-icon"
-                        title="{{ window_text }}"
-                        aria-label="{{ window_text }}"
-                        role="img"
-                        tabindex="0"
-                      >
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <rect x="3" y="5" width="7" height="8" rx="1.5"/>
-                          <rect x="14" y="11" width="7" height="8" rx="1.5"/>
-                          <path d="M8.5 16h6"/>
-                          <path d="m12.5 14 2 2-2 2"/>
-                          <path d="M5 3v3"/>
-                          <path d="M8 3v3"/>
-                          <path d="M16 9v3"/>
-                          <path d="M19 9v3"/>
-                        </svg>
-                      </span>
-                    </td>
-                    <td class="numeric-cell">
-                      {% if point.daily_consumption_l is none %}
-                        {{ t("common.dash") }}
-                      {% else %}
-                        {{ "%.0f"|format(point.daily_consumption_l) }} {{ t("common.liters") }}
-                      {% endif %}
-                    </td>
-                    <td>
-                      <span class="quality-badge quality-badge-{{ quality }}">
-                        {% if quality == 'expected' %}
-                          {{ t("history.expecting_at_noon") }}
-                        {% else %}
-                          {{ t("quality." ~ quality) }}
-                        {% endif %}
-                      </span>
-                    </td>
-                    <td>
-                      {% if point.estimate_span_days %}
-                        {{ t("common.days", count=point.estimate_span_days) }}
-                      {% else %}
-                        {{ t("common.dash") }}
-                      {% endif %}
-                    </td>
-                    <td>
-                      {% if point.meter_consumption_l is none %}
-                        {{ t("common.dash") }}
-                      {% else %}
-                        {{ "%.0f"|format(point.meter_consumption_l) }} {{ t("common.liters") }}
-                      {% endif %}
-                    </td>
+            <div class="history-table-note">
+              <span class="date-range-icon history-table-note-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="5" width="7" height="8" rx="1.5"/>
+                  <rect x="14" y="11" width="7" height="8" rx="1.5"/>
+                  <path d="M8.5 16h6"/>
+                  <path d="m12.5 14 2 2-2 2"/>
+                  <path d="M5 3v3"/>
+                  <path d="M8 3v3"/>
+                  <path d="M16 9v3"/>
+                  <path d="M19 9v3"/>
+                </svg>
+              </span>
+              <span>{{ t("history.noon_snapshot_legend") }}</span>
+            </div>
+            <div class="history-table-scroll">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>{{ t("history.date") }}</th>
+                    <th>{{ t("history.consumption") }}</th>
+                    <th>{{ t("history.quality") }}</th>
+                    <th>{{ t("history.span") }}</th>
+                    <th>{{ t("history.meter_total") }}</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {% for point in points | reverse %}
+                    {% set quality = point.measurement_quality %}
+                    {% set snapshot_date = point.snapshot_date.isoformat() %}
+                    {% set snapshot_datetime = snapshot_date ~ " 12:00" %}
+                    {% set window_start = previous_date_iso(point.snapshot_date) %}
+                    {% set window_text = t("history.noon_snapshot_window", start=window_start, end=snapshot_date) %}
+                    <tr class="{{ 'history-row-provisional' if quality in ['current', 'expected', 'offline'] else '' }}">
+                      <td>
+                        <span class="date-cell-value">{{ snapshot_datetime }}</span>
+                        <span
+                          class="date-range-icon date-info-icon"
+                          title="{{ window_text }}"
+                          aria-label="{{ window_text }}"
+                          role="img"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="5" width="7" height="8" rx="1.5"/>
+                            <rect x="14" y="11" width="7" height="8" rx="1.5"/>
+                            <path d="M8.5 16h6"/>
+                            <path d="m12.5 14 2 2-2 2"/>
+                            <path d="M5 3v3"/>
+                            <path d="M8 3v3"/>
+                            <path d="M16 9v3"/>
+                            <path d="M19 9v3"/>
+                          </svg>
+                        </span>
+                      </td>
+                      <td class="numeric-cell">
+                        {% if point.daily_consumption_l is none %}
+                          {{ t("common.dash") }}
+                        {% else %}
+                          {{ "%.0f"|format(point.daily_consumption_l) }} {{ t("common.liters") }}
+                        {% endif %}
+                      </td>
+                      <td>
+                        <span class="quality-badge quality-badge-{{ quality }}">
+                          {% if quality == 'expected' %}
+                            {{ t("history.expecting_at_noon") }}
+                          {% else %}
+                            {{ t("quality." ~ quality) }}
+                          {% endif %}
+                        </span>
+                      </td>
+                      <td>
+                        {% if point.estimate_span_days %}
+                          {{ t("common.days", count=point.estimate_span_days) }}
+                        {% else %}
+                          {{ t("common.dash") }}
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if point.meter_consumption_l is none %}
+                          {{ t("common.dash") }}
+                        {% else %}
+                          {{ "%.0f"|format(point.meter_consumption_l) }} {{ t("common.liters") }}
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           {% else %}
             <div class="empty-state">{{ t("history.no_snapshots") }}</div>
           {% endif %}
