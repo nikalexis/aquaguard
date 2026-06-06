@@ -682,7 +682,7 @@ h2 {
   min-height: 6px;
 }
 
-.bar-wrap span {
+.bar-date-label {
   margin-top: 8px;
   color: var(--muted);
   font-size: 0.76rem;
@@ -709,6 +709,7 @@ h2 {
   text-align: left;
   transform: translateX(50%);
   white-space: normal;
+  pointer-events: none;
 }
 
 .bar-popover::after {

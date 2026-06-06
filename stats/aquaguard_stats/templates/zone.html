@@ -325,7 +325,7 @@
                     data-chart-detail="{{ chart_detail | trim }}"
                   ></div>
                   <span class="bar-popover" role="status">{{ chart_detail | trim }}</span>
-                  <span>{{ point.snapshot_date.day }}/{{ point.snapshot_date.month }}</span>
+                  <span class="bar-date-label">{{ point.snapshot_date.day }}/{{ point.snapshot_date.month }}</span>
                 </div>
               {% endfor %}
             </div>
