@@ -417,5 +417,33 @@
         </div>
       </section>
     </main>
+    <script>
+      (() => {
+        const mobileQuery = window.matchMedia("(max-width: 760px)");
+        let wasMobile = mobileQuery.matches;
+
+        const scrollChartToLatest = () => {
+          if (!mobileQuery.matches) {
+            return;
+          }
+          const chart = document.querySelector(".chart");
+          if (!chart) {
+            return;
+          }
+          requestAnimationFrame(() => {
+            chart.scrollLeft = chart.scrollWidth - chart.clientWidth;
+          });
+        };
+
+        window.addEventListener("DOMContentLoaded", scrollChartToLatest);
+        window.addEventListener("resize", () => {
+          const isMobile = mobileQuery.matches;
+          if (isMobile && !wasMobile) {
+            scrollChartToLatest();
+          }
+          wasMobile = isMobile;
+        });
+      })();
+    </script>
   </body>
 </html>
