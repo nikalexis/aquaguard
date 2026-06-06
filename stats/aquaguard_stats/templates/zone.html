@@ -325,7 +325,18 @@
             </div>
             <table class="history-table">
               <caption class="history-table-note">
-                <span class="history-table-note-icon" aria-hidden="true">i</span>
+                <span class="date-range-icon history-table-note-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="7" height="8" rx="1.5"/>
+                    <rect x="14" y="11" width="7" height="8" rx="1.5"/>
+                    <path d="M8.5 16h6"/>
+                    <path d="m12.5 14 2 2-2 2"/>
+                    <path d="M5 3v3"/>
+                    <path d="M8 3v3"/>
+                    <path d="M16 9v3"/>
+                    <path d="M19 9v3"/>
+                  </svg>
+                </span>
                 <span>{{ t("history.noon_snapshot_legend") }}</span>
               </caption>
               <thead>
@@ -348,12 +359,23 @@
                     <td>
                       <span class="date-cell-value">{{ snapshot_datetime }}</span>
                       <span
-                        class="date-info-icon"
+                        class="date-range-icon date-info-icon"
                         title="{{ window_text }}"
                         aria-label="{{ window_text }}"
                         role="img"
                         tabindex="0"
-                      >i</span>
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <rect x="3" y="5" width="7" height="8" rx="1.5"/>
+                          <rect x="14" y="11" width="7" height="8" rx="1.5"/>
+                          <path d="M8.5 16h6"/>
+                          <path d="m12.5 14 2 2-2 2"/>
+                          <path d="M5 3v3"/>
+                          <path d="M8 3v3"/>
+                          <path d="M16 9v3"/>
+                          <path d="M19 9v3"/>
+                        </svg>
+                      </span>
                     </td>
                     <td class="numeric-cell">
                       {% if point.daily_consumption_l is none %}
