@@ -355,7 +355,7 @@
                   {% set snapshot_datetime = snapshot_date ~ " 12:00" %}
                   {% set window_start = previous_date_iso(point.snapshot_date) %}
                   {% set window_text = t("history.noon_snapshot_window", start=window_start, end=snapshot_date) %}
-                  <tr>
+                  <tr class="{{ 'history-row-provisional' if quality in ['current', 'expected', 'offline'] else '' }}">
                     <td>
                       <span class="date-cell-value">{{ snapshot_datetime }}</span>
                       <span

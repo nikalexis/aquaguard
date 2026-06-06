@@ -743,6 +743,19 @@ h2 {
   text-transform: uppercase;
 }
 
+.history-row-provisional {
+  background: rgb(88 96 106 / 5%);
+  color: var(--muted);
+}
+
+.history-row-provisional .date-range-icon {
+  opacity: 0.72;
+}
+
+.history-row-provisional .quality-badge {
+  opacity: 0.92;
+}
+
 .numeric-cell {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
