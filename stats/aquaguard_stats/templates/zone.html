@@ -324,11 +324,11 @@
                     aria-label="{{ chart_detail | trim }}"
                     data-chart-detail="{{ chart_detail | trim }}"
                   ></div>
-                  <span class="bar-popover" role="status">{{ chart_detail | trim }}</span>
                   <span class="bar-date-label">{{ point.snapshot_date.day }}/{{ point.snapshot_date.month }}</span>
                 </div>
               {% endfor %}
             </div>
+            <div class="chart-popover" role="status" aria-live="polite"></div>
             <div class="history-table-note">
               <span class="date-range-icon history-table-note-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
@@ -452,19 +452,41 @@
           wasMobile = isMobile;
         });
 
-        const hideBarPopovers = () => {
-          document.querySelectorAll(".bar-wrap.is-active").forEach((wrap) => {
-            wrap.classList.remove("is-active");
-          });
+        const hideBarPopover = () => {
+          document.querySelector(".bar-wrap.is-active")?.classList.remove("is-active");
+          const popover = document.querySelector(".chart-popover");
+          if (popover) {
+            popover.classList.remove("is-active");
+          }
         };
 
         const showBarPopover = (bar) => {
+          const panel = document.querySelector(".chart-panel");
+          const popover = document.querySelector(".chart-popover");
           const wrap = bar.closest(".bar-wrap");
-          if (!wrap) {
+          if (!panel || !popover || !wrap || !bar.dataset.chartDetail) {
             return;
           }
-          hideBarPopovers();
+          document.querySelector(".bar-wrap.is-active")?.classList.remove("is-active");
           wrap.classList.add("is-active");
+          popover.textContent = bar.dataset.chartDetail;
+          popover.classList.add("is-active");
+
+          requestAnimationFrame(() => {
+            const panelRect = panel.getBoundingClientRect();
+            const barRect = bar.getBoundingClientRect();
+            const popoverRect = popover.getBoundingClientRect();
+            const rawLeft = barRect.left - panelRect.left + (barRect.width / 2);
+            const minLeft = (popoverRect.width / 2) + 8;
+            const maxLeft = panelRect.width - (popoverRect.width / 2) - 8;
+            const left = Math.min(Math.max(rawLeft, minLeft), maxLeft);
+            const top = Math.max(
+              8,
+              barRect.top - panelRect.top - popoverRect.height - 10,
+            );
+            popover.style.left = `${left}px`;
+            popover.style.top = `${top}px`;
+          });
         };
 
         document.querySelectorAll(".bar[data-chart-detail]").forEach((bar) => {
@@ -478,13 +500,14 @@
               event.preventDefault();
               showBarPopover(bar);
             } else if (event.key === "Escape") {
-              hideBarPopovers();
+              hideBarPopover();
               bar.blur();
             }
           });
         });
 
-        document.addEventListener("click", hideBarPopovers);
+        document.querySelector(".chart")?.addEventListener("scroll", hideBarPopover);
+        document.addEventListener("click", hideBarPopover);
       })();
     </script>
   </body>

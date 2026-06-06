@@ -467,6 +467,7 @@ h2 {
 }
 
 .chart-panel {
+  position: relative;
   padding: 18px;
 }
 
@@ -688,10 +689,8 @@ h2 {
   font-size: 0.76rem;
 }
 
-.bar-popover {
+.chart-popover {
   position: absolute;
-  right: 50%;
-  bottom: 34px;
   z-index: 3;
   display: none;
   width: max-content;
@@ -707,14 +706,14 @@ h2 {
   font-weight: 900;
   line-height: 1.25;
   text-align: left;
-  transform: translateX(50%);
+  transform: translateX(-50%);
   white-space: normal;
   pointer-events: none;
 }
 
-.bar-popover::after {
+.chart-popover::after {
   position: absolute;
-  right: 50%;
+  left: 50%;
   bottom: -5px;
   width: 8px;
   height: 8px;
@@ -722,10 +721,10 @@ h2 {
   border-bottom: 1px solid rgb(22 125 143 / 24%);
   background: var(--panel);
   content: "";
-  transform: translateX(50%) rotate(45deg);
+  transform: translateX(-50%) rotate(45deg);
 }
 
-.bar-wrap.is-active .bar-popover {
+.chart-popover.is-active {
   display: block;
 }
 
