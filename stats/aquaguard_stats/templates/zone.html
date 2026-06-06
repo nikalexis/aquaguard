@@ -313,12 +313,18 @@
               {% for point in points %}
                 {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
                 {% set quality = point.measurement_quality %}
+                {% set chart_detail %}{{ point.snapshot_date.day }}/{{ point.snapshot_date.month }}: {% if quality == 'estimated' %}{{ t('quality.estimated') }}{% if point.estimate_span_days %}, {{ t('history.estimate_spread', count=point.estimate_span_days) }}{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'exact' %}{{ t('quality.exact') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'current' %}{{ t('quality.current') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'reset' %}{{ t('quality.reset') }}, 0 {{ t('common.liters') }}{% elif quality == 'expected' %}{{ t('history.expecting_at_noon') }}{% elif quality == 'offline' %}{{ t('quality.offline') }}{% elif quality == 'missing' %}{{ t('quality.missing') }}{% else %}{{ t('quality.partial') }}{% endif %}{% endset %}
                 <div class="bar-wrap">
                   <div
                     class="bar quality-{{ quality }}"
                     style="height: {{ [height, 100] | min }}%"
-                    title="{{ point.snapshot_date.isoformat() }}: {% if quality == 'estimated' %}{{ t('quality.estimated') }}{% if point.estimate_span_days %}, {{ t('history.estimate_spread', count=point.estimate_span_days) }}{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'exact' %}{{ t('quality.exact') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'current' %}{{ t('quality.current') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'reset' %}{{ t('quality.reset') }}, 0 {{ t('common.liters') }}{% elif quality == 'expected' %}{{ t('history.expecting_at_noon') }}{% elif quality == 'offline' %}{{ t('quality.offline') }}{% elif quality == 'missing' %}{{ t('quality.missing') }}{% else %}{{ t('quality.partial') }}{% endif %}"
+                    title="{{ chart_detail | trim }}"
+                    role="button"
+                    tabindex="0"
+                    aria-label="{{ chart_detail | trim }}"
+                    data-chart-detail="{{ chart_detail | trim }}"
                   ></div>
+                  <span class="bar-popover" role="status">{{ chart_detail | trim }}</span>
                   <span>{{ point.snapshot_date.day }}/{{ point.snapshot_date.month }}</span>
                 </div>
               {% endfor %}
@@ -445,6 +451,40 @@
           }
           wasMobile = isMobile;
         });
+
+        const hideBarPopovers = () => {
+          document.querySelectorAll(".bar-wrap.is-active").forEach((wrap) => {
+            wrap.classList.remove("is-active");
+          });
+        };
+
+        const showBarPopover = (bar) => {
+          const wrap = bar.closest(".bar-wrap");
+          if (!wrap) {
+            return;
+          }
+          hideBarPopovers();
+          wrap.classList.add("is-active");
+        };
+
+        document.querySelectorAll(".bar[data-chart-detail]").forEach((bar) => {
+          bar.addEventListener("click", (event) => {
+            event.stopPropagation();
+            showBarPopover(bar);
+          });
+          bar.addEventListener("focus", () => showBarPopover(bar));
+          bar.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              showBarPopover(bar);
+            } else if (event.key === "Escape") {
+              hideBarPopovers();
+              bar.blur();
+            }
+          });
+        });
+
+        document.addEventListener("click", hideBarPopovers);
       })();
     </script>
   </body>
