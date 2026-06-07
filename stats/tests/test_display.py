@@ -1,6 +1,10 @@
 import unittest
 
-from aquaguard_stats.display import format_volume_html, format_volume_text
+from aquaguard_stats.display import (
+    format_cubic_meters_text,
+    format_volume_html,
+    format_volume_text,
+)
 
 
 class DisplayFormatterTests(unittest.TestCase):
@@ -12,6 +16,13 @@ class DisplayFormatterTests(unittest.TestCase):
 
     def test_format_volume_text_handles_missing_values(self):
         self.assertEqual(format_volume_text(None), "-")
+
+    def test_format_cubic_meters_text_uses_meters_only(self):
+        self.assertEqual(format_cubic_meters_text(0), "0.0 m³")
+        self.assertEqual(format_cubic_meters_text(678), "0.7 m³")
+        self.assertEqual(format_cubic_meters_text(1000), "1.0 m³")
+        self.assertEqual(format_cubic_meters_text(15678), "15.7 m³")
+        self.assertEqual(format_cubic_meters_text(None), "-")
 
     def test_format_volume_html_marks_major_and_minor_units(self):
         html = str(format_volume_html(15678))

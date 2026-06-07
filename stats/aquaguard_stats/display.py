@@ -16,6 +16,13 @@ def format_volume_text(liters: float | None) -> str:
     return f"{sign}{cubic_meters} m³ {remaining_liters} L"
 
 
+def format_cubic_meters_text(liters: float | None) -> str:
+    if liters is None:
+        return "-"
+    cubic_meters = round(liters / 1000, 1)
+    return f"{cubic_meters:.1f} m³"
+
+
 def format_volume_html(liters: float | None) -> Markup:
     text = format_volume_text(liters)
     if liters is None:
