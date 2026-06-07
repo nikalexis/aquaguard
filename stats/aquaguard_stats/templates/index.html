@@ -123,7 +123,7 @@
               </svg>
               {{ t("dashboard.total_period_use") }}
             </span>
-            <strong>{{ "%.0f"|format(summary.total_period_consumption_l) }} {{ t("common.liters") }}</strong>
+            <strong>{{ format_volume(summary.total_period_consumption_l) }}</strong>
           </div>
           <div class="metric">
             <span>
@@ -136,7 +136,7 @@
             </span>
             <strong>
               {% if summary.total_active_period_limit_l > 0 %}
-                {{ "%.0f"|format(summary.total_active_period_limit_l) }} {{ t("common.liters") }}
+                {{ format_volume(summary.total_active_period_limit_l) }}
               {% else %}
                 {{ t("common.not_set") }}
               {% endif %}
@@ -211,9 +211,9 @@
                 {% endif %}
               </div>
               <div class="zone-values">
-                <span>{{ "%.0f"|format(zone.period_consumption_l) }} {{ t("common.liters") }}</span>
+                {{ format_volume(zone.period_consumption_l) }}
                 {% if zone.period_limit_active and zone.period_limit_l > 0 %}
-                  <small>{{ t("dashboard.of_liters", value="%.0f"|format(zone.period_limit_l)) }}</small>
+                  <small>{{ t("dashboard.of_liters", value=format_volume_text(zone.period_limit_l)) }}</small>
                 {% else %}
                   <small>{{ t("status.label.no_active_limit") }}</small>
                 {% endif %}

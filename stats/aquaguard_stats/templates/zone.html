@@ -127,7 +127,7 @@
                 </svg>
                 {{ t("zone.period_use") }}
               </span>
-              <strong>{{ "%.0f"|format(zone.live.period_consumption_l) }} {{ t("common.liters") }}</strong>
+              <strong>{{ format_volume(zone.live.period_consumption_l) }}</strong>
             </div>
             <div class="metric">
               <span>
@@ -140,7 +140,7 @@
               </span>
               <strong>
                 {% if zone.live.period_limit_active and zone.live.period_limit_l > 0 %}
-                  {{ "%.0f"|format(zone.live.period_limit_l) }} {{ t("common.liters") }}
+                  {{ format_volume(zone.live.period_limit_l) }}
                 {% else %}
                   {{ t("common.not_set") }}
                 {% endif %}
@@ -314,7 +314,7 @@
               {% for point in points %}
                 {% set height = 8 if point.daily_consumption_l is none else (point.daily_consumption_l / max_value * 100) %}
                 {% set quality = point.measurement_quality %}
-                {% set chart_detail %}{{ point.snapshot_date.day }}/{{ point.snapshot_date.month }}: {% if quality == 'estimated' %}{{ t('quality.estimated') }}{% if point.estimate_span_days %}, {{ t('history.estimate_spread', count=point.estimate_span_days) }}{% endif %}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'exact' %}{{ t('quality.exact') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'current' %}{{ t('quality.current') }}: {{ "%.0f"|format(point.daily_consumption_l or 0) }} {{ t('common.liters') }}{% elif quality == 'reset' %}{{ t('quality.reset') }}, 0 {{ t('common.liters') }}{% elif quality == 'expected' %}{{ t('history.expecting_at_noon') }}{% elif quality == 'offline' %}{{ t('quality.offline') }}{% elif quality == 'missing' %}{{ t('quality.missing') }}{% else %}{{ t('quality.partial') }}{% endif %}{% endset %}
+                {% set chart_detail %}{{ point.snapshot_date.day }}/{{ point.snapshot_date.month }}: {% if quality == 'estimated' %}{{ t('quality.estimated') }}{% if point.estimate_span_days %}, {{ t('history.estimate_spread', count=point.estimate_span_days) }}{% endif %}: {{ format_volume_text(point.daily_consumption_l or 0) }}{% elif quality == 'exact' %}{{ t('quality.exact') }}: {{ format_volume_text(point.daily_consumption_l or 0) }}{% elif quality == 'current' %}{{ t('quality.current') }}: {{ format_volume_text(point.daily_consumption_l or 0) }}{% elif quality == 'reset' %}{{ t('quality.reset') }}, {{ format_volume_text(0) }}{% elif quality == 'expected' %}{{ t('history.expecting_at_noon') }}{% elif quality == 'offline' %}{{ t('quality.offline') }}{% elif quality == 'missing' %}{{ t('quality.missing') }}{% else %}{{ t('quality.partial') }}{% endif %}{% endset %}
                 <div class="bar-wrap">
                   <div
                     class="bar quality-{{ quality }}"
@@ -389,7 +389,7 @@
                         {% if point.daily_consumption_l is none %}
                           {{ t("common.dash") }}
                         {% else %}
-                          {{ "%.0f"|format(point.daily_consumption_l) }} {{ t("common.liters") }}
+                          {{ format_volume(point.daily_consumption_l) }}
                         {% endif %}
                       </td>
                       <td>
@@ -412,7 +412,7 @@
                         {% if point.meter_consumption_l is none %}
                           {{ t("common.dash") }}
                         {% else %}
-                          {{ "%.0f"|format(point.meter_consumption_l) }} {{ t("common.liters") }}
+                          {{ format_volume(point.meter_consumption_l) }}
                         {% endif %}
                       </td>
                     </tr>

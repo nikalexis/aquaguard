@@ -55,7 +55,7 @@
       "monitored_zones": "{count} monitored zones",
       "zones_aria": "Zones",
       "zone_number": "Zone {number}",
-      "of_liters": "of {value} L"
+      "of_liters": "of {value}"
     },
     "zone": {
       "page_title": "Zone {number} - AquaGuard Stats",
@@ -174,7 +174,7 @@
       "monitored_zones": "{count} ζώνες υπό παρακολούθηση",
       "zones_aria": "Ζώνες",
       "zone_number": "Ζώνη {number}",
-      "of_liters": "από {value} L"
+      "of_liters": "από {value}"
     },
     "zone": {
       "page_title": "Ζώνη {number} - Στατιστικά AquaGuard",

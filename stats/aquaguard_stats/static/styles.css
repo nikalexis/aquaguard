@@ -316,7 +316,7 @@ h2 {
   box-shadow: var(--shadow);
 }
 
-.metric span {
+.metric > span {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -335,6 +335,26 @@ h2 {
   margin-top: 8px;
   font-size: clamp(1.5rem, 4vw, 2.4rem);
   line-height: 1;
+}
+
+.volume {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.18em 0.32em;
+  color: inherit;
+  white-space: normal;
+}
+
+.volume-major {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.volume-minor {
+  color: var(--muted);
+  font-size: 0.68em;
+  font-weight: 800;
 }
 
 .progress-panel {
@@ -404,10 +424,15 @@ h2 {
   text-decoration: none;
 }
 
-.zone-row strong,
-.zone-values span {
+.zone-row strong {
   display: block;
   font-size: 1.1rem;
+}
+
+.zone-values > .volume {
+  display: inline-flex;
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
 .zone-index,

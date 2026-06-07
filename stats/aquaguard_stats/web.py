@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .config import load_settings
+from .display import format_volume_html, format_volume_text
 from .esphome_client import ESPHomeZoneReader
 from .i18n import (
     LANGUAGE_COOKIE,
@@ -39,6 +40,8 @@ def create_app() -> FastAPI:
     service = StatsService(settings, repository, ESPHomeZoneReader(settings))
     scheduler = NoonSnapshotScheduler(service)
     templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
+    templates.env.globals["format_volume"] = format_volume_html
+    templates.env.globals["format_volume_text"] = format_volume_text
     translator = load_translator()
 
     @asynccontextmanager
