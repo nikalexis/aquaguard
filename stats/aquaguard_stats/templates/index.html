@@ -153,7 +153,7 @@
             </span>
             <strong>{{ warning_threshold }}%</strong>
           </div>
-          <div class="metric">
+          <div class="metric {{ 'is-watering' if watering_now_zones else '' }}">
             <span>
               <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 3.5c2.8 3.1 5.5 6.6 5.5 10.1a5.5 5.5 0 0 1-11 0C6.5 10.1 9.2 6.6 12 3.5Z"/>
@@ -214,7 +214,7 @@
         <div class="zone-list" aria-label="{{ t('dashboard.zones_aria') }}">
           {% for zone_state in summary.zones %}
             {% set zone = zone_state.live %}
-            <a class="zone-row" href="{{ localized_url('/zones/' ~ zone.zone_id) }}">
+            <a class="zone-row {{ 'is-watering' if zone.zone_id in active_watering_zone_ids else '' }}" href="{{ localized_url('/zones/' ~ zone.zone_id) }}">
               <div class="zone-title">
                 <span class="zone-index">{{ t("dashboard.zone_number", number=zone.zone_id) }}</span>
                 <strong>{{ zone.zone_name }}</strong>

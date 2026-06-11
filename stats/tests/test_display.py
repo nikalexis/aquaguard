@@ -1,5 +1,6 @@
 import unittest
 from datetime import datetime
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 from aquaguard_stats.display import (
@@ -9,6 +10,7 @@ from aquaguard_stats.display import (
     format_volume_html,
     format_volume_text,
     is_last_pulse_within,
+    watering_zone_ids,
 )
 
 
@@ -115,6 +117,46 @@ class DisplayFormatterTests(unittest.TestCase):
             is_last_pulse_within("2026-06-11 14:30:01", now, timezone, seconds=60)
         )
         self.assertFalse(is_last_pulse_within(None, now, timezone, seconds=60))
+
+    def test_watering_zone_ids_returns_only_recent_live_zones(self):
+        timezone = ZoneInfo("Europe/Athens")
+        now = datetime(2026, 6, 11, 14, 30, 0, tzinfo=timezone)
+        zone_states = [
+            _zone_state(1, "2026-06-11 14:29:01"),
+            _zone_state(2, "2026-06-11 14:29:00"),
+            _zone_state(3, "2026-06-11 14:30:01"),
+            _zone_state(4, None),
+            _zone_state(5, "not a date"),
+        ]
+
+        self.assertEqual(
+            watering_zone_ids(zone_states, True, now, timezone, seconds=60),
+            {1},
+        )
+
+    def test_watering_zone_ids_returns_empty_when_live_state_is_unavailable(self):
+        timezone = ZoneInfo("Europe/Athens")
+        now = datetime(2026, 6, 11, 14, 30, 0, tzinfo=timezone)
+
+        self.assertEqual(
+            watering_zone_ids(
+                [_zone_state(1, "2026-06-11 14:29:01")],
+                False,
+                now,
+                timezone,
+                seconds=60,
+            ),
+            set(),
+        )
+
+
+def _zone_state(zone_id, last_pulse_timestamp):
+    return SimpleNamespace(
+        live=SimpleNamespace(
+            zone_id=zone_id,
+            last_pulse_timestamp=last_pulse_timestamp,
+        )
+    )
 
 
 def _translator(translations):

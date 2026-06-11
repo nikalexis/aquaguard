@@ -18,7 +18,7 @@ from .display import (
     format_last_pulse_timestamp,
     format_volume_html,
     format_volume_text,
-    is_last_pulse_within,
+    watering_zone_ids,
 )
 from .esphome_client import ESPHomeZoneReader
 from .i18n import (
@@ -76,16 +76,16 @@ def create_app() -> FastAPI:
         t = translator.for_language(language)
         summary = await service.get_dashboard_summary()
         now = datetime.now(settings.zoneinfo)
+        active_watering_zone_ids = watering_zone_ids(
+            summary.zones,
+            live_available=summary.live_available,
+            now=now,
+            timezone=settings.zoneinfo,
+        )
         watering_now_zones = [
             zone_state.live.zone_name
             for zone_state in summary.zones
-            if summary.live_available
-            and is_last_pulse_within(
-                zone_state.live.last_pulse_timestamp,
-                now,
-                settings.zoneinfo,
-                seconds=60,
-            )
+            if zone_state.live.zone_id in active_watering_zone_ids
         ]
         response = templates.TemplateResponse(
             request,
@@ -100,6 +100,7 @@ def create_app() -> FastAPI:
                 "localized_url": lambda path: localized_url(path, language),
                 "summary": summary,
                 "watering_now_zones": watering_now_zones,
+                "active_watering_zone_ids": active_watering_zone_ids,
                 "status_label_key": status_label_key,
                 "t": t,
                 "warning_threshold": int(settings.warning_threshold * 100),
@@ -131,6 +132,12 @@ def create_app() -> FastAPI:
             (candidate for candidate in summary.zones if candidate.live.zone_id == zone_id),
             None,
         )
+        active_watering_zone_ids = watering_zone_ids(
+            summary.zones,
+            live_available=summary.live_available,
+            now=datetime.now(settings.zoneinfo),
+            timezone=settings.zoneinfo,
+        )
         history_range = service.resolve_history_range(
             zone_id=zone_id,
             range_mode=range,
@@ -157,6 +164,7 @@ def create_app() -> FastAPI:
                 "summary": summary,
                 "zone": zone,
                 "zone_id": zone_id,
+                "zone_is_watering_now": zone_id in active_watering_zone_ids,
                 "points": points,
                 "history_range": history_range,
                 "month_names": translator.month_names(language),

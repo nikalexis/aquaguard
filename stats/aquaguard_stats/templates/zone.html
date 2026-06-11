@@ -161,7 +161,7 @@
                 {% endif %}
               </strong>
             </div>
-            <div class="metric" title="{{ format_last_pulse_timestamp(zone.live.last_pulse_timestamp) }}">
+            <div class="metric {{ 'is-watering' if zone_is_watering_now else '' }}" title="{{ format_last_pulse_timestamp(zone.live.last_pulse_timestamp) }}">
               <span>
                 <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
                   <circle cx="12" cy="12" r="9"/>

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from datetime import datetime
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from markupsafe import Markup
@@ -107,6 +108,27 @@ def is_last_pulse_within(
         return False
     delta_seconds = (now.astimezone(timezone) - last_pulse_at).total_seconds()
     return 0 <= delta_seconds < seconds
+
+
+def watering_zone_ids(
+    zone_states: Iterable[Any],
+    live_available: bool,
+    now: datetime,
+    timezone: ZoneInfo,
+    seconds: int = 60,
+) -> set[int]:
+    if not live_available:
+        return set()
+    return {
+        zone.zone_id
+        for zone_state in zone_states
+        if is_last_pulse_within(
+            (zone := zone_state.live).last_pulse_timestamp,
+            now,
+            timezone,
+            seconds=seconds,
+        )
+    }
 
 
 def _parse_esphome_timestamp(
