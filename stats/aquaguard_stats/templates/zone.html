@@ -161,6 +161,16 @@
                 {% endif %}
               </strong>
             </div>
+            <div class="metric" title="{{ format_last_pulse_timestamp(zone.live.last_pulse_timestamp) }}">
+              <span>
+                <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M12 7v5l3 2"/>
+                </svg>
+                {{ t("zone.last_pulse") }}
+              </span>
+              <strong>{{ format_last_pulse_relative(zone.live.last_pulse_timestamp) }}</strong>
+            </div>
           </div>
 
           <div class="progress-panel">

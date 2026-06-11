@@ -303,12 +303,13 @@ h2 {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 16px;
 }
 
 .metric {
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 18px;
@@ -319,9 +320,11 @@ h2 {
 .metric > span {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   color: var(--muted);
   font-size: 0.9rem;
+  line-height: 1.25;
 }
 
 .metric-icon {
@@ -333,8 +336,9 @@ h2 {
 .metric strong {
   display: block;
   margin-top: 8px;
-  font-size: clamp(1.5rem, 4vw, 2.4rem);
-  line-height: 1;
+  overflow-wrap: anywhere;
+  font-size: 1.25rem;
+  line-height: 1.15;
 }
 
 .volume {
@@ -954,7 +958,14 @@ h2 {
     align-items: flex-start;
   }
 
-  .summary-grid,
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric strong {
+    font-size: 1.2rem;
+  }
+
   .zone-row {
     grid-template-columns: 1fr;
   }
@@ -1031,5 +1042,15 @@ h2 {
 
   .bar-wrap {
     flex: 0 0 34px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric strong {
+    font-size: 1.25rem;
   }
 }

@@ -5,10 +5,21 @@
     },
     "common": {
       "days": "{count} days",
+      "no": "No",
       "not_set": "Not set",
       "dash": "-",
       "liters": "L",
       "liters_per_minute": "L/min"
+    },
+    "relative_time": {
+      "just_now": "Just now",
+      "seconds_ago": "{count} seconds ago",
+      "minute_ago": "1 minute ago",
+      "minutes_ago": "{count} minutes ago",
+      "hour_ago": "1 hour ago",
+      "hours_ago": "{count} hours ago",
+      "day_ago": "1 day ago",
+      "days_ago": "{count} days ago"
     },
     "language": {
       "selector": "Language",
@@ -49,6 +60,7 @@
       "total_period_use": "Total period use",
       "active_period_limit": "Active period limit",
       "warning_threshold": "Warning threshold",
+      "watering_now": "Watering now",
       "period_utilization": "Period utilization",
       "zones": "Zones",
       "zone_activity": "Zone activity",
@@ -66,6 +78,7 @@
       "period_use": "Period use",
       "period_limit": "Period limit",
       "flow_rate_60s": "Flow rate 60s",
+      "last_pulse": "Last pulse",
       "zone_period_utilization": "Zone period utilization",
       "history": "History",
       "daily_consumption": "Daily consumption"
@@ -124,10 +137,21 @@
     },
     "common": {
       "days": "{count} ημέρες",
+      "no": "Όχι",
       "not_set": "Δεν έχει οριστεί",
       "dash": "-",
       "liters": "L",
       "liters_per_minute": "L/min"
+    },
+    "relative_time": {
+      "just_now": "Μόλις τώρα",
+      "seconds_ago": "πριν από {count} δευτερόλεπτα",
+      "minute_ago": "πριν από 1 λεπτό",
+      "minutes_ago": "πριν από {count} λεπτά",
+      "hour_ago": "πριν από 1 ώρα",
+      "hours_ago": "πριν από {count} ώρες",
+      "day_ago": "πριν από 1 ημέρα",
+      "days_ago": "πριν από {count} ημέρες"
     },
     "language": {
       "selector": "Γλώσσα",
@@ -168,6 +192,7 @@
       "total_period_use": "Συνολική χρήση περιόδου",
       "active_period_limit": "Ενεργό όριο περιόδου",
       "warning_threshold": "Όριο προειδοποίησης",
+      "watering_now": "Πότισμα τώρα",
       "period_utilization": "Αξιοποίηση περιόδου",
       "zones": "Ζώνες",
       "zone_activity": "Δραστηριότητα ζωνών",
@@ -185,6 +210,7 @@
       "period_use": "Χρήση περιόδου",
       "period_limit": "Όριο περιόδου",
       "flow_rate_60s": "Ροή 60s",
+      "last_pulse": "Τελευταίος παλμός",
       "zone_period_utilization": "Αξιοποίηση περιόδου ζώνης",
       "history": "Ιστορικό",
       "daily_consumption": "Ημερήσια κατανάλωση"

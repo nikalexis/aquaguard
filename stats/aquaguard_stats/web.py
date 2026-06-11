@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import uvicorn
@@ -12,7 +12,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .config import load_settings
-from .display import format_cubic_meters_text, format_volume_html, format_volume_text
+from .display import (
+    format_cubic_meters_text,
+    format_last_pulse_relative,
+    format_last_pulse_timestamp,
+    format_volume_html,
+    format_volume_text,
+    is_last_pulse_within,
+)
 from .esphome_client import ESPHomeZoneReader
 from .i18n import (
     LANGUAGE_COOKIE,
@@ -68,6 +75,18 @@ def create_app() -> FastAPI:
         language, should_set_language_cookie = resolve_language(request)
         t = translator.for_language(language)
         summary = await service.get_dashboard_summary()
+        now = datetime.now(settings.zoneinfo)
+        watering_now_zones = [
+            zone_state.live.zone_name
+            for zone_state in summary.zones
+            if summary.live_available
+            and is_last_pulse_within(
+                zone_state.live.last_pulse_timestamp,
+                now,
+                settings.zoneinfo,
+                seconds=60,
+            )
+        ]
         response = templates.TemplateResponse(
             request,
             "index.html",
@@ -80,6 +99,7 @@ def create_app() -> FastAPI:
                 ),
                 "localized_url": lambda path: localized_url(path, language),
                 "summary": summary,
+                "watering_now_zones": watering_now_zones,
                 "status_label_key": status_label_key,
                 "t": t,
                 "warning_threshold": int(settings.warning_threshold * 100),
@@ -142,6 +162,16 @@ def create_app() -> FastAPI:
                 "month_names": translator.month_names(language),
                 "status_label_key": status_label_key,
                 "t": t,
+                "format_last_pulse_relative": lambda timestamp: format_last_pulse_relative(
+                    timestamp,
+                    datetime.now(settings.zoneinfo),
+                    settings.zoneinfo,
+                    t,
+                ),
+                "format_last_pulse_timestamp": lambda timestamp: format_last_pulse_timestamp(
+                    timestamp,
+                    settings.zoneinfo,
+                ),
                 "previous_date_iso": lambda snapshot_date: (
                     snapshot_date - timedelta(days=1)
                 ).isoformat(),

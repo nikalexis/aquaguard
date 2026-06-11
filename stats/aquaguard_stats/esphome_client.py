@@ -88,7 +88,7 @@ async def _collect_state_values(
         zone_id: {}
         for zone_id in range(1, ZONE_COUNT + 1)
     }
-    required = {
+    awaited = {
         binding.key
         for binding in bindings.values()
         if binding.field
@@ -102,6 +102,7 @@ async def _collect_state_values(
             "effective_stop",
             "water_allowed",
             "flow_rate_l_min",
+            "last_pulse_timestamp",
         }
     }
     seen: set[int] = set()
@@ -113,7 +114,7 @@ async def _collect_state_values(
             return
         values[binding.zone_id][binding.field] = getattr(state, "state", None)
         seen.add(binding.key)
-        if required.issubset(seen):
+        if awaited.issubset(seen):
             ready.set()
 
     unsubscribe = client.subscribe_states(on_state)
