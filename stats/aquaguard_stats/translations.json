@@ -60,6 +60,7 @@
       "total_period_use": "Total period use",
       "active_period_limit": "Active period limit",
       "warning_threshold": "Warning threshold",
+      "pump_status": "Pump status",
       "watering_now": "Watering now",
       "period_utilization": "Period utilization",
       "zones": "Zones",
@@ -82,6 +83,11 @@
       "zone_period_utilization": "Zone period utilization",
       "history": "History",
       "daily_consumption": "Daily consumption"
+    },
+    "pump_status": {
+      "on": "On",
+      "off": "Off",
+      "unknown": "Unknown"
     },
     "history": {
       "range_aria": "History range",
@@ -192,6 +198,7 @@
       "total_period_use": "Συνολική χρήση περιόδου",
       "active_period_limit": "Ενεργό όριο περιόδου",
       "warning_threshold": "Όριο προειδοποίησης",
+      "pump_status": "Κατάσταση αντλίας",
       "watering_now": "Πότισμα τώρα",
       "period_utilization": "Αξιοποίηση περιόδου",
       "zones": "Ζώνες",
@@ -214,6 +221,11 @@
       "zone_period_utilization": "Αξιοποίηση περιόδου ζώνης",
       "history": "Ιστορικό",
       "daily_consumption": "Ημερήσια κατανάλωση"
+    },
+    "pump_status": {
+      "on": "Ενεργή",
+      "off": "Ανενεργή",
+      "unknown": "Άγνωστη"
     },
     "history": {
       "range_aria": "Εύρος ιστορικού",

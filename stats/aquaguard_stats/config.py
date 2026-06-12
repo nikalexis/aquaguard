@@ -11,6 +11,8 @@ class Settings:
     esphome_host: str
     esphome_port: int
     api_encryption_key: str | None
+    shelly_pump_host: str
+    shelly_pump_timeout_s: float
     db_path: Path
     timezone: str
     warning_threshold: float
@@ -44,6 +46,8 @@ def load_settings() -> Settings:
         esphome_host=os.getenv("AQUAGUARD_ESPHOME_HOST", "aquaguard.local"),
         esphome_port=int(os.getenv("AQUAGUARD_ESPHOME_PORT", "6053")),
         api_encryption_key=_optional_env("AQUAGUARD_API_ENCRYPTION_KEY"),
+        shelly_pump_host=os.getenv("AQUAGUARD_SHELLY_PUMP_HOST", "10.10.2.11"),
+        shelly_pump_timeout_s=float(os.getenv("AQUAGUARD_SHELLY_PUMP_TIMEOUT_S", "2")),
         db_path=Path(os.getenv("AQUAGUARD_DB_PATH", "data/aquaguard-stats.sqlite3")),
         timezone=os.getenv("AQUAGUARD_TIMEZONE", "Europe/Athens"),
         warning_threshold=threshold,

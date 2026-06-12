@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
@@ -34,6 +35,7 @@ from .models import ZONE_COUNT
 from .repository import SnapshotRepository
 from .scheduler import NoonSnapshotScheduler
 from .service import StatsService
+from .shelly_client import ShellyPumpReader
 
 LOGGER = logging.getLogger(__name__)
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -45,6 +47,7 @@ def create_app() -> FastAPI:
     repository = SnapshotRepository(settings.db_path)
     repository.init_schema()
     service = StatsService(settings, repository, ESPHomeZoneReader(settings))
+    pump_reader = ShellyPumpReader(settings)
     scheduler = NoonSnapshotScheduler(service)
     templates = Jinja2Templates(directory=str(PACKAGE_DIR / "templates"))
     templates.env.globals["format_cubic_meters"] = format_cubic_meters_text
@@ -74,7 +77,10 @@ def create_app() -> FastAPI:
     async def index(request: Request):
         language, should_set_language_cookie = resolve_language(request)
         t = translator.for_language(language)
-        summary = await service.get_dashboard_summary()
+        summary, pump_status = await asyncio.gather(
+            service.get_dashboard_summary(),
+            pump_reader.read_status(),
+        )
         now = datetime.now(settings.zoneinfo)
         active_watering_zone_ids = watering_zone_ids(
             summary.zones,
@@ -99,11 +105,11 @@ def create_app() -> FastAPI:
                 ),
                 "localized_url": lambda path: localized_url(path, language),
                 "summary": summary,
+                "pump_status": pump_status,
                 "watering_now_zones": watering_now_zones,
                 "active_watering_zone_ids": active_watering_zone_ids,
                 "status_label_key": status_label_key,
                 "t": t,
-                "warning_threshold": int(settings.warning_threshold * 100),
             },
         )
         if should_set_language_cookie:

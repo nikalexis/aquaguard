@@ -24,6 +24,8 @@ class HistoryRangeServiceTests(unittest.TestCase):
             esphome_host="localhost",
             esphome_port=6053,
             api_encryption_key=None,
+            shelly_pump_host="10.10.2.11",
+            shelly_pump_timeout_s=2.0,
             db_path=Path(temp_dir.name) / "stats.sqlite3",
             timezone="Europe/Athens",
             warning_threshold=0.8,

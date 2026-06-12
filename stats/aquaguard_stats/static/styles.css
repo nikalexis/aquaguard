@@ -389,6 +389,32 @@ h2 {
   line-height: 1.15;
 }
 
+.pump-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.pump-status-on {
+  background: rgb(95 127 82 / 16%);
+  color: var(--field);
+}
+
+.pump-status-off {
+  background: rgb(185 60 50 / 14%);
+  color: var(--alert);
+}
+
+.pump-status-unknown {
+  background: rgb(88 96 106 / 13%);
+  color: var(--offline);
+}
+
 .volume {
   display: inline-flex;
   align-items: baseline;

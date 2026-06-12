@@ -145,13 +145,24 @@
           <div class="metric">
             <span>
               <svg class="metric-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 8v5"/>
-                <path d="M12 17h.01"/>
-                <path d="M10.2 4.6 2.8 18a2 2 0 0 0 1.8 3h14.8a2 2 0 0 0 1.8-3L13.8 4.6a2 2 0 0 0-3.6 0Z"/>
+                <path d="M5 21h14"/>
+                <path d="M7 21V10"/>
+                <path d="M17 21V10"/>
+                <path d="M6 10h12"/>
+                <path d="M8 6h8l2 4H6z"/>
+                <path d="M12 10v4"/>
+                <path d="M10 16h4"/>
               </svg>
-              {{ t("dashboard.warning_threshold") }}
+              {{ t("dashboard.pump_status") }}
             </span>
-            <strong>{{ warning_threshold }}%</strong>
+            <strong>
+              <span
+                class="pump-status pump-status-{{ pump_status.state }}"
+                {% if pump_status.error %}title="{{ pump_status.error }}"{% endif %}
+              >
+                {{ t("pump_status." ~ pump_status.state) }}
+              </span>
+            </strong>
           </div>
           <div class="metric {{ 'is-watering' if watering_now_zones else '' }}">
             <span>
