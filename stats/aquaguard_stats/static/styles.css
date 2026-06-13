@@ -415,6 +415,13 @@ h2 {
   color: var(--offline);
 }
 
+.watering-zone-list {
+  display: grid;
+  gap: 3px;
+  overflow-wrap: anywhere;
+  line-height: 1.18;
+}
+
 .volume {
   display: inline-flex;
   align-items: baseline;
